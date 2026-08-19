@@ -1,0 +1,85 @@
+# ============================================
+# RUFF — линтер + форматтер (заменяет black/isort/flake8/bandit)
+# ============================================
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [
+    ".venv",
+    "venv",
+    "migrations",
+    "staticfiles",
+    "htmlcov",
+]
+
+[tool.ruff.lint]
+# E/W — pycodestyle, F — pyflakes, I — isort, N — pep8-naming,
+# B — bugbear, C4 — comprehensions, UP — pyupgrade, DJ — django-специфика,
+# S — bandit-подобные проверки безопасности
+select = ["E", "F", "W", "I", "N", "B", "C4", "UP", "DJ", "S", "RUF"]
+ignore = [
+    "E501",   # line-too-long — решаем через форматтер
+    "B008",   # function-call-in-default-argument (DRF использует permission_classes=[...])
+    "DJ001",  # django-nullable-model-string-field — допустимо в существующей модели
+    "DJ012",  # order-of-model-inner-classes — __str__ после property, не критично
+    "S101",   # use of assert — нужно в тестах
+    "RUF001", # ambiguous-unicode-char — кириллица в строках допустима
+    "RUF002", # ambiguous-unicode-char-docstring — кириллица в докстрингах
+    "RUF003", # ambiguous-unicode-char-comment — кириллица в комментариях
+    "RUF012", # mutable-class-default — DRF Meta.fields как list это стандарт
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests.py" = ["S105", "S106"]
+"**/test_*.py" = ["S105", "S106"]
+"**/settings.py" = ["S105"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["places", "project"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+# ============================================
+# MYPY
+# ============================================
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+exclude = [
+    "migrations/",
+    ".venv/",
+    "venv/",
+    "staticfiles/",
+    "htmlcov/",
+]
+
+# ============================================
+# COVERAGE
+# ============================================
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/tests.py",
+    "*/admin.py",
+    "project/asgi.py",
+    "project/wsgi.py",
+    "manage.py",
+    ".venv/*",
+    "htmlcov/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

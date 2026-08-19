@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    container_name: django-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./backend/db.sqlite3:/app/db.sqlite3
+    env_file:
+      - ./backend/.env
+    networks:
+      - network
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    container_name: react-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
