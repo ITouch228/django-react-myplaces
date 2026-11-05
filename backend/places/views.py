@@ -1,3 +1,5 @@
+from math import isfinite
+
 from django.db.models import Avg, Count, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from geopy.distance import distance
@@ -78,8 +80,16 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
         try:
             lat, lng, radius = float(lat), float(lng), float(radius)
-        except ValueError:
-            return Response({"error": "Неверный формат координат"}, status=400)
+        except (TypeError, ValueError):
+            return Response({"error": "Неверный формат координат или радиуса"}, status=400)
+
+        if (
+            not all(isfinite(value) for value in (lat, lng, radius))
+            or not -90 <= lat <= 90
+            or not -180 <= lng <= 180
+            or not 0 < radius <= 1000
+        ):
+            return Response({"error": "Координаты или радиус вне допустимого диапазона"}, status=400)
 
         user_loc = (lat, lng)
         places = self.get_queryset()
