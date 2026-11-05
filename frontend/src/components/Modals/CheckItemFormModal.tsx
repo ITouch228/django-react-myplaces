@@ -30,7 +30,7 @@ export const CheckItemFormModal = ({
   const isEdit = !!checkItem;
   const isLoading = addItem.isPending || updateItem.isPending;
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const data = {
