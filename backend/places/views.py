@@ -1,3 +1,4 @@
+from django.db.models import Avg, Count, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from geopy.distance import distance
 from rest_framework import filters, permissions, status, viewsets
@@ -55,7 +56,15 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Place.objects.filter(user=self.request.user)
+            return (
+                Place.objects.filter(user=self.request.user)
+                .annotate(
+                    _avg_rating=Avg("checks__items__rating"),
+                    _avg_price=Avg("checks__items__price"),
+                    _total_checks=Count("checks", distinct=True),
+                )
+                .prefetch_related(Prefetch("checks", queryset=Check.objects.prefetch_related("items")))
+            )
         return Place.objects.none()
 
     @action(detail=False, methods=["get"])
