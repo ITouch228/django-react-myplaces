@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from rest_framework import serializers
 
 from .models import Check, CheckItem, Place
@@ -40,12 +41,27 @@ class CheckSerializer(serializers.ModelSerializer):
         fields = ["id", "place", "user", "visited_at", "created_at", "comment", "total", "avg_rating", "items"]
         read_only_fields = ["user", "created_at"]
 
+    def validate_place(self, place):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated or place.user_id != request.user.id:
+            raise serializers.ValidationError("Место не найдено или недоступно.")
+        return place
+
+    @transaction.atomic
     def create(self, validated_data):
         items_data = validated_data.pop("items", [])
         check = Check.objects.create(**validated_data)
-        for item_data in items_data:
-            CheckItem.objects.create(check_ref=check, **item_data)
+        CheckItem.objects.bulk_create([CheckItem(check_ref=check, **item) for item in items_data])
         return check
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop("items", None)
+        instance = super().update(instance, validated_data)
+        if items_data is not None:
+            instance.items.all().delete()
+            CheckItem.objects.bulk_create([CheckItem(check_ref=instance, **item) for item in items_data])
+        return instance
 
 
 # Place
