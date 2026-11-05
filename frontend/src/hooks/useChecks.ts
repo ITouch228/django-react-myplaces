@@ -32,7 +32,7 @@ export const useUpdateCheck = () => {
     }: {
       id: number;
       data: Partial<CreateCheckData>;
-    }) => api.put<Check>(`/api/checks/${id}/`, data).then((res) => res.data),
+    }) => api.patch<Check>(`/api/checks/${id}/`, data).then((res) => res.data),
     onSuccess: (updatedCheck) => {
       queryClient.invalidateQueries({
         queryKey: ["checks", { place: updatedCheck.place }],
