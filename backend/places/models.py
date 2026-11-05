@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import QuerySet
@@ -50,8 +52,8 @@ class Check(models.Model):
     items: "QuerySet[CheckItem]"
 
     @property
-    def total(self) -> float:
-        return sum(item.price for item in self.items.all())
+    def total(self) -> Decimal:
+        return sum((item.price for item in self.items.all()), Decimal("0.00"))
 
     @property
     def avg_rating(self) -> float | None:
