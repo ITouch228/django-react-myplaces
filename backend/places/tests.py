@@ -168,9 +168,7 @@ class CheckAPITestCase(TestCase):
 
     def test_cannot_create_check_for_another_users_place(self):
         other_user = User.objects.create_user(username="other", password="testpass")
-        other_place = Place.objects.create(
-            name="Private Place", latitude=55.0, longitude=37.0, user=other_user
-        )
+        other_place = Place.objects.create(name="Private Place", latitude=55.0, longitude=37.0, user=other_user)
         data = {**self.check_data, "place": other_place.id}
         response = self.client.post("/api/checks/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -179,12 +177,8 @@ class CheckAPITestCase(TestCase):
     def test_cannot_move_check_to_another_users_place(self):
         check = Check.objects.create(place=self.place, user=self.user)
         other_user = User.objects.create_user(username="other", password="testpass")
-        other_place = Place.objects.create(
-            name="Private Place", latitude=55.0, longitude=37.0, user=other_user
-        )
-        response = self.client.patch(
-            f"/api/checks/{check.id}/", {"place": other_place.id}, format="json"
-        )
+        other_place = Place.objects.create(name="Private Place", latitude=55.0, longitude=37.0, user=other_user)
+        response = self.client.patch(f"/api/checks/{check.id}/", {"place": other_place.id}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         check.refresh_from_db()
         self.assertEqual(check.place_id, self.place.id)
