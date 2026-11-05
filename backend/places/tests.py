@@ -121,14 +121,10 @@ class PlaceAPITestCase(TestCase):
 
     def test_place_list_uses_constant_number_of_queries(self):
         for index in range(5):
-            place = Place.objects.create(
-                name=f"Place {index}", latitude=55.0, longitude=37.0, user=self.user
-            )
+            place = Place.objects.create(name=f"Place {index}", latitude=55.0, longitude=37.0, user=self.user)
             for visit in range(2):
                 check = Check.objects.create(place=place, user=self.user)
-                CheckItem.objects.create(
-                    check_ref=check, item_name=f"Dish {visit}", price=100, rating=5
-                )
+                CheckItem.objects.create(check_ref=check, item_name=f"Dish {visit}", price=100, rating=5)
 
         with self.assertNumQueries(3):
             response = self.client.get("/api/places/")
