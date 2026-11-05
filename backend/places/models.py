@@ -17,14 +17,20 @@ class Place(models.Model):
     def avg_rating(self):
         from django.db.models import Avg
 
-        avg = self._avg_rating if hasattr(self, "_avg_rating") else CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("rating"))["rating__avg"]
+        if hasattr(self, "_avg_rating"):
+            avg = self._avg_rating
+        else:
+            avg = CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("rating"))["rating__avg"]
         return round(avg, 1) if avg is not None else None
 
     @property
     def avg_price(self):
         from django.db.models import Avg
 
-        avg = self._avg_price if hasattr(self, "_avg_price") else CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("price"))["price__avg"]
+        if hasattr(self, "_avg_price"):
+            avg = self._avg_price
+        else:
+            avg = CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("price"))["price__avg"]
         return round(avg, 2) if avg is not None else None
 
     @property
