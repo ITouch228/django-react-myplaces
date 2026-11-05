@@ -166,6 +166,59 @@ class CheckAPITestCase(TestCase):
         self.assertEqual(Check.objects.count(), 1)
         self.assertEqual(CheckItem.objects.count(), 1)
 
+    def test_cannot_create_check_for_another_users_place(self):
+        other_user = User.objects.create_user(username="other", password="testpass")
+        other_place = Place.objects.create(
+            name="Private Place", latitude=55.0, longitude=37.0, user=other_user
+        )
+        data = {**self.check_data, "place": other_place.id}
+        response = self.client.post("/api/checks/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Check.objects.count(), 0)
+
+    def test_cannot_move_check_to_another_users_place(self):
+        check = Check.objects.create(place=self.place, user=self.user)
+        other_user = User.objects.create_user(username="other", password="testpass")
+        other_place = Place.objects.create(
+            name="Private Place", latitude=55.0, longitude=37.0, user=other_user
+        )
+        response = self.client.patch(
+            f"/api/checks/{check.id}/", {"place": other_place.id}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        check.refresh_from_db()
+        self.assertEqual(check.place_id, self.place.id)
+
+    def test_patch_check_items_replaces_previous_items(self):
+        check = Check.objects.create(place=self.place, user=self.user)
+        CheckItem.objects.create(check_ref=check, item_name="Old", price=100, rating=3)
+        response = self.client.patch(
+            f"/api/checks/{check.id}/",
+            {"items": [{"item_name": "New", "price": "250.50", "rating": 5}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(list(check.items.values_list("item_name", flat=True)), ["New"])
+        self.assertEqual(str(check.items.get().price), "250.50")
+
+    def test_patch_comment_preserves_check_items(self):
+        check = Check.objects.create(place=self.place, user=self.user)
+        item = CheckItem.objects.create(check_ref=check, item_name="Coffee", price=150, rating=5)
+        response = self.client.patch(f"/api/checks/{check.id}/", {"comment": "Updated"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(CheckItem.objects.filter(pk=item.pk).exists())
+
+    def test_invalid_nested_update_preserves_original_items(self):
+        check = Check.objects.create(place=self.place, user=self.user)
+        item = CheckItem.objects.create(check_ref=check, item_name="Coffee", price=150, rating=5)
+        response = self.client.patch(
+            f"/api/checks/{check.id}/",
+            {"items": [{"item_name": "Broken", "price": "-1", "rating": 6}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(CheckItem.objects.filter(pk=item.pk).exists())
+
     def test_create_check_unauthenticated(self):
         self.client.force_authenticate(user=None)
         response = self.client.post("/api/checks/", self.check_data, format="json")
