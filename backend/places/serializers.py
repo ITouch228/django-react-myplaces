@@ -1,7 +1,7 @@
+from math import isfinite
+
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from .models import Check, CheckItem, Place
@@ -9,18 +9,11 @@ from .models import Check, CheckItem, Place
 
 # User
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, min_length=8)
+    password = serializers.CharField(write_only=True, required=True, min_length=4)
 
     class Meta:
         model = User
         fields = ["id", "username", "email", "password"]
-
-    def validate_password(self, value):
-        try:
-            validate_password(value)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(exc.messages) from exc
-        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -81,12 +74,12 @@ class CheckSerializer(serializers.ModelSerializer):
 # Place
 class PlaceSerializer(serializers.ModelSerializer):
     def validate_latitude(self, value):
-        if not -90 <= value <= 90:
+        if not isfinite(value) or not -90 <= value <= 90:
             raise serializers.ValidationError("Широта должна находиться в диапазоне от -90 до 90.")
         return value
 
     def validate_longitude(self, value):
-        if not -180 <= value <= 180:
+        if not isfinite(value) or not -180 <= value <= 180:
             raise serializers.ValidationError("Долгота должна находиться в диапазоне от -180 до 180.")
         return value
 
