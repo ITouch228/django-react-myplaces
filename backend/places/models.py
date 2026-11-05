@@ -17,19 +17,25 @@ class Place(models.Model):
     def avg_rating(self):
         from django.db.models import Avg
 
-        avg = CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("rating"))["rating__avg"]
+        if hasattr(self, "_avg_rating"):
+            avg = self._avg_rating
+        else:
+            avg = CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("rating"))["rating__avg"]
         return round(avg, 1) if avg is not None else None
 
     @property
     def avg_price(self):
         from django.db.models import Avg
 
-        avg = CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("price"))["price__avg"]
+        if hasattr(self, "_avg_price"):
+            avg = self._avg_price
+        else:
+            avg = CheckItem.objects.filter(check_ref__place=self).aggregate(Avg("price"))["price__avg"]
         return round(avg, 2) if avg is not None else None
 
     @property
     def total_checks(self) -> int:
-        return self.checks.count()
+        return self._total_checks if hasattr(self, "_total_checks") else self.checks.count()
 
     def __str__(self) -> str:
         return self.name
@@ -50,6 +56,10 @@ class Check(models.Model):
     @property
     def avg_rating(self) -> float | None:
         from django.db.models import Avg
+
+        if "items" in getattr(self, "_prefetched_objects_cache", {}):
+            ratings = [item.rating for item in self.items.all() if item.rating is not None]
+            return round(sum(ratings) / len(ratings), 1) if ratings else None
 
         avg = self.items.aggregate(Avg("rating"))["rating__avg"]
         return round(avg, 1) if avg else None
