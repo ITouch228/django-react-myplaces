@@ -102,6 +102,33 @@ class PlaceAPITestCase(TestCase):
         self.assertEqual(response.data["name"], "New Place")
         self.assertEqual(response.data["user"], self.user.id)
 
+    def test_reject_invalid_place_coordinates(self):
+        for coords in (
+            {"latitude": 91},
+            {"latitude": -91},
+            {"longitude": 181},
+            {"longitude": -181},
+            {"latitude": "NaN"},
+            {"longitude": "Infinity"},
+        ):
+            with self.subTest(coords=coords):
+                response = self.client.post("/api/places/", {**self.place_data, **coords}, format="json")
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_nearby_rejects_invalid_coordinates_and_radius(self):
+        for params in (
+            "lat=nan&lng=37",
+            "lat=91&lng=37",
+            "lat=55&lng=181",
+            "lat=55&lng=37&radius=0",
+            "lat=55&lng=37&radius=-1",
+            "lat=55&lng=37&radius=inf",
+            "lat=55&lng=37&radius=1001",
+        ):
+            with self.subTest(params=params):
+                response = self.client.get(f"/api/places/nearby/?{params}")
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_create_place_unauthenticated(self):
         self.client.force_authenticate(user=None)
         response = self.client.post("/api/places/", self.place_data)
@@ -243,6 +270,20 @@ class CheckAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(CheckItem.objects.filter(pk=item.pk).exists())
 
+    def test_create_check_rejects_negative_price(self):
+        data = {**self.check_data, "items": [{"item_name": "Coffee", "price": "-1.00", "rating": 5}]}
+        response = self.client.post("/api/checks/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Check.objects.count(), 0)
+
+    def test_check_total_preserves_decimal_precision(self):
+        from decimal import Decimal
+
+        check = Check.objects.create(place=self.place, user=self.user)
+        CheckItem.objects.create(check_ref=check, item_name="Coffee", price=Decimal("0.10"), rating=5)
+        CheckItem.objects.create(check_ref=check, item_name="Tea", price=Decimal("0.20"), rating=4)
+        self.assertEqual(check.total, Decimal("0.30"))
+
     def test_create_check_unauthenticated(self):
         self.client.force_authenticate(user=None)
         response = self.client.post("/api/checks/", self.check_data, format="json")
@@ -298,6 +339,14 @@ class CheckItemAPITestCase(TestCase):
         response = self.client.post(f"/api/checks/{self.check.id}/add_item/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CheckItem.objects.count(), 1)
+
+    def test_add_item_rejects_negative_price(self):
+        response = self.client.post(
+            f"/api/checks/{self.check.id}/add_item/",
+            {"item_name": "Tea", "price": "-0.01", "rating": 5},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(CheckItem.objects.count(), 0)
 
     def test_add_item_invalid_data(self):
         data = {"price": 100}  # Без item_name

@@ -1,3 +1,5 @@
+from math import isfinite
+
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import serializers
@@ -24,6 +26,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 # CheckItem
 class CheckItemSerializer(serializers.ModelSerializer):
+    def validate_price(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Цена не может быть отрицательной.")
+        return value
+
     class Meta:
         model = CheckItem
         fields = ["id", "check_ref", "item_name", "price", "rating"]
@@ -66,6 +73,16 @@ class CheckSerializer(serializers.ModelSerializer):
 
 # Place
 class PlaceSerializer(serializers.ModelSerializer):
+    def validate_latitude(self, value):
+        if not isfinite(value) or not -90 <= value <= 90:
+            raise serializers.ValidationError("Широта должна находиться в диапазоне от -90 до 90.")
+        return value
+
+    def validate_longitude(self, value):
+        if not isfinite(value) or not -180 <= value <= 180:
+            raise serializers.ValidationError("Долгота должна находиться в диапазоне от -180 до 180.")
+        return value
+
     avg_rating = serializers.ReadOnlyField()
     avg_price = serializers.ReadOnlyField()
     total_checks = serializers.ReadOnlyField()
