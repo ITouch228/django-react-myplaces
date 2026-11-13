@@ -5,7 +5,7 @@ services:
       target: dev
     container_name: my_places-backend
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8072:8001"
     volumes:
       - ./backend:/app
     env_file:
@@ -19,7 +19,7 @@ services:
       target: dev
     container_name: my_places-frontend
     ports:
-      - "8071:8071"
+      - "127.0.0.1:8073:8073"
     volumes:
       - ./frontend:/app
       - /app/node_modules
