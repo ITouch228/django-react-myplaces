@@ -1,97 +1,70 @@
-# Единый Jenkins для MyPlaces, MyInventory и MyFiles
+# Один Jenkins и один общий агент
 
-**Один ПК, один Jenkins-контроллер, отдельные Multibranch Pipeline jobs.** Новый контроллер MyPlaces не запускается: используйте уже работающий Jenkins MyInventory на http://localhost:8092.
+MyPlaces использует существующий Jenkins MyInventory на **http://localhost:8092**, без второго контроллера или агента. Общий агент собирается **только** из репозитория [MyInventory](https://github.com/ITouch228/fastapi-react-my_inventory), ветка `ci/shared-agent-python312-node22` до её слияния с main.
 
-## Целевая схема
+## Архитектура
 
 ```text
-ПК / Docker
-  Jenkins controller :8092 (существующий)
-    +-- MyInventory (Multibranch Pipeline)
-    +-- MyPlaces    (Multibranch Pipeline)
-    +-- MyFiles     (добавить при переносе с GitHub Actions)
-         |
-         +-- build agents (изолированные executors)
+Jenkins controller :8092 (существующий)
+  └── Jenkins agent (один контейнер, один executor)
+      ├── MyInventory job
+      ├── MyPlaces job
+      └── MyFiles job (после подготовки Jenkinsfile)
 ```
 
-Контроллеру выставить **0 executors**. На рабочих агентах должны быть Git, Python 3.12, Node.js 22 с npm и доступ к репозиторию. Агенту не нужен Docker socket, и ему нельзя монтировать рабочие базы данных или каталоги с фотографиями других проектов.
+Контроллеру установить **0 executors**; общему агенту оставить **1 executor** и назначить label `shared-ci`. Имя существующего агента `myinventory-node22` можно **сохранить**. Меняется лишь label Jenkins Node: добавить `shared-ci` (старый label можно оставить для совместимости). Это исключает необходимость регистрировать новое Jenkins Node.
 
-Текущий агент MyInventory `myinventory-node22` уже содержит Node 22 и Python из дистрибутива, но **версия Python 3.12 не подтверждена**. Нельзя считать его совместимым с Django 6.1 без проверки.
+## Подготовка единого агента
 
-Для MyPlaces Jenkinsfile использует label `myplaces-python312-node22`. В репозитории есть **отдельный inbound-agent** (`ci/jenkins/agent/Dockerfile`), содержащий Python 3.12 + Node 22. Он подключается к существующему контроллеру по внутренней Docker-сети; **второй Jenkins-сервер не создаётся**. Альтернатива: назначить label уже существующему агенту, если у него есть совместимый Python 3.12.
+1. Слить ветку `ci/shared-agent-python312-node22` в репозитории MyInventory после проверки. Dockerfile агента теперь включает Python 3.12, Node 22, Git и npm.
+2. Пересобрать **только агент** из MyInventory. Не удалять `jenkins_home` и не пересоздавать контроллер.
 
-### Запуск дополнительного агента
+Windows PowerShell и Linux Bash, из корня MyInventory:
 
-1. В Jenkins создай **Manage Jenkins -> Nodes -> New Node**, имя `myplaces-python312-node22`, Permanent Agent, один executor, Remote root directory `/home/jenkins/agent`, Launch method **Launch agent by connecting it to the controller**, WebSocket.
-2. Скопируй выданный Jenkins secret. Проверь имя сети, в которой работает контроллер MyInventory: `docker network ls` (обычно `jenkins_ci`; фактическое имя может отличаться).
-3. Создай локальный файл `ci/jenkins/.env` из шаблона. Укажи `JENKINS_NETWORK` и `JENKINS_SECRET`. Никогда не коммить секрет.
-4. Из корня MyPlaces запусти:
-
-Windows PowerShell:
-
-```powershell
-Copy-Item ci/jenkins/.env.example ci/jenkins/.env
-# Заполни JENKINS_SECRET и реальное JENKINS_NETWORK
-docker compose -f ci/jenkins/compose.yaml up -d --build agent
-docker compose -f ci/jenkins/compose.yaml logs --tail=100 agent
+```sh
+docker compose -f ci/jenkins/compose.yaml --profile agent up -d --build agent
+docker compose -f ci/jenkins/compose.yaml --profile agent ps
+docker compose -f ci/jenkins/compose.yaml --profile agent logs --tail=100 agent
 ```
 
-Linux Bash:
+3. В **Manage Jenkins -> Nodes** у существующего агента поставить label `shared-ci`, **1 executor**, проверить статус Online.
+4. Убедиться в наличии `python3.12 --version`, `node --version`, `npm --version` через Jenkins pipeline.
 
-```bash
-cp ci/jenkins/.env.example ci/jenkins/.env
-# Заполни JENKINS_SECRET и реальное JENKINS_NETWORK
-docker compose -f ci/jenkins/compose.yaml up -d --build agent
-docker compose -f ci/jenkins/compose.yaml logs --tail=100 agent
-```
-
-Агент не содержит Jenkins-контроллер, не публикует порты и не получает Docker socket. Проверить, что Node появился **Online**, прежде чем запускать Pipeline.
+!!! warning "Никакого второго Jenkins"
+    В MyPlaces **нет** собственного compose, Dockerfile агента и конфигурации второго контроллера. Используется агент из MyInventory. Не запускайте вторую Jenkins-инфраструктуру.
 
 ## Подключение MyPlaces
 
-1. В существующем Jenkins убедиться, что агент `myplaces-python312-node22` в статусе **Online**, содержит Python 3.12, Node 22, Git и npm.
-2. Создать **New Item -> Multibranch Pipeline** с именем `MyPlaces`.
-3. Branch Source -> Git, URL `git@github.com:ITouch228/django-react-myplaces.git`.
-4. Credentials: SSH Username with private key (пользователь `git`) из **Jenkins Credentials**, без приватных ключей в репозитории.
-5. Script Path: `Jenkinsfile`. Включить периодическое **Branch Indexing** для поиска новых веток; `pollSCM` опрашивает уже обнаруженные ветки.
-6. Выполнить **Scan Multibranch Pipeline Now**, затем запустить ветку `docs/mkdocs-shared-jenkins`.
-7. Убедиться, что все этапы зелёные и последний SHA совпадает с push.
+Создать **New Item -> Multibranch Pipeline** с именем `MyPlaces`.
 
-Если GitHub SSH host key ещё не известен Jenkins, настройте проверенный ключ в Git Host Key Verification Configuration; **не отключайте** host verification.
+- Git URL: `git@github.com:ITouch228/django-react-myplaces.git`.
+- Credentials: SSH Username with private key, username `git`; ключ хранить в Jenkins Credentials.
+- Script Path: `Jenkinsfile`; agent label `shared-ci`.
+- Включить Branch Indexing и проверить Scan Multibranch Pipeline Now.
+- Запустить ветку `docs/mkdocs-shared-jenkins` и проверить актуальный SHA.
 
-## Этапы pipeline
+`pollSCM` проверяет уже найденные ветки; Branch Indexing обнаруживает новые. Проверяйте SSH host key, не отключайте его проверку.
 
-| Этап | Команда / проверка |
+## Что проверяется
+
+| Этап | Проверка |
 | --- | --- |
-| Checkout | Git + версии Python/Node |
-| Backend deps | `pip install` в виртуальное окружение workspace |
-| Backend lint/types | Ruff lint/format, mypy |
-| Django | system check, контроль миграций |
-| Backend tests | Django TestCase и coverage |
-| Frontend deps | `npm ci` |
-| Frontend quality | ESLint, TypeScript/Vite build |
-| Frontend tests | Vitest (пока поддерживает пустой набор) |
-| Docs | MkDocs strict, проверка итогового HTML |
+| Backend | Ruff, mypy, Django checks, миграции, тесты, coverage |
+| Frontend | npm ci, ESLint, Vite/TypeScript build, Vitest |
+| Документация | MkDocs strict и проверка собранного HTML |
 
-Jenkinsfile не собирает APK (MyPlaces - веб-приложение), не выкладывает новые версии, не монтирует Docker socket и **не подключается к действующей базе**. Отчёты coverage хранятся как артефакты без пользовательских файлов. `buildDiscarder` ограничивает историю.
+MyInventory использует тот же label `shared-ci`. Для MyFiles отдельный Jenkinsfile ещё предстоит добавить, не создавая другого агента.
 
-## GitHub Actions
+Рабочие директории jobs изолированы Jenkins. Python virtualenv создаётся внутри workspace каждого задания. Docker socket, рабочие SQLite-базы и каталоги файлов не передаются агенту.
 
-На время внедрения Jenkins текущий GitHub Actions workflow **оставлен** как проверенный резервный CI. После того как Jenkins прогонит несколько коммитов и будет проверяться при push, можно отдельным PR выключить дублирующий Actions. Не отключайте работающий CI до подтверждения нового.
+## Переход с GitHub Actions
 
-## Обслуживание одного Jenkins
+GitHub Actions MyPlaces оставляем как резерв до подтверждения успешного Jenkins на нескольких коммитах. Только после проверки поведения Multibranch Pipeline можно отключить дублирующий Actions отдельным изменением.
 
-- Для MyInventory и MyPlaces используйте разные workspace и lock-файлы, не общий `node_modules`.
-- Ограничьте параллелизм по памяти ПК: один executor на агенте - безопасная начальная настройка.
-- Храните Jenkins credentials только в Jenkins, отдельно от Git репозиториев.
-- Периодически сохраняйте `jenkins_home` и проверяйте восстановление; не используйте `docker compose down -v` на действующей установке.
-- Не копируйте `ci/jenkins/compose.yaml` MyInventory в MyPlaces: он содержит определение **того же контроллера**, что привело бы к дублированию.
+## Приёмка
 
-## Приёмка Jenkins-перехода
-
-1. Агент online и виден MyPlaces job.
-2. Изменение в feature-ветке запускает pipeline.
-3. Ошибка Ruff/TypeScript/теста приводит к FAILED.
-4. Исправленный commit запускает новый build.
-5. Проверка docs выполняет `mkdocs build --strict`.
-6. Последний SHA зелёный; после merge отдельно проверен main.
+1. В Jenkins один контроллер, **один Online агент** с label `shared-ci`.
+2. MyInventory и MyPlaces jobs работают по очереди и проходят CI на последнем SHA.
+3. Ошибка Ruff/TypeScript приводит к FAILED, исправленный коммит вызывает новый запуск.
+4. MkDocs strict проходит в обоих проектах.
+5. После merge проверен `main`.
