@@ -1,0 +1,30 @@
+# Agent ONLY. Reuse the existing MyInventory Jenkins controller and network.
+# Discover the external network using: docker network ls
+services:
+  agent:
+    build:
+      context: ../..
+      dockerfile: ci/jenkins/agent/Dockerfile
+    image: myplaces-jenkins-agent:local
+    init: true
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      JENKINS_URL: http://controller:8080/
+      JENKINS_AGENT_NAME: myplaces-python312-node22
+      JENKINS_AGENT_WORKDIR: /home/jenkins/agent
+      JENKINS_WEB_SOCKET: "true"
+      NPM_CONFIG_CACHE: /home/jenkins/agent/npm-cache
+    volumes:
+      - agent_work:/home/jenkins/agent
+    networks:
+      - shared-jenkins
+
+volumes:
+  agent_work:
+
+networks:
+  shared-jenkins:
+    external: true
+    name: ${JENKINS_NETWORK:-jenkins_ci}
