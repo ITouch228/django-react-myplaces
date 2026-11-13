@@ -77,8 +77,8 @@ export const PlaceDetailPage = () => {
     return <div className="text-center text-muted mt-20">Место не найдено</div>;
 
   return (
-    <div className="container animate-fade-in">
-      <div className="flex-between mb-16 animate-slide-left">
+    <div className="container place-details-page">
+      <div className="flex-between mb-16 place-details-page__header">
         <Link to="/" className="btn btn-secondary btn-sm">
           ← На карту
         </Link>
@@ -95,12 +95,12 @@ export const PlaceDetailPage = () => {
       </div>
 
       {place.address && (
-        <p className="place-address animate-fade-in delay-200">
+        <p className="place-address">
           {place.address}
         </p>
       )}
 
-      <div className="stats-bar animate-fade-in delay-300">
+      <div className="stats-bar">
         <span className="stat">
           ⭐ <span className="stat-value">{place.avg_rating || "—"}</span>
         </span>
@@ -113,7 +113,7 @@ export const PlaceDetailPage = () => {
       </div>
 
       <button
-        className="btn btn-primary mt-16 mb-16 animate-fade-in delay-400 hover-scale"
+        className="btn btn-primary mt-16 mb-16"
         onClick={() => {
           setEditingCheck(null);
           setCheckModalOpen(true);
@@ -122,7 +122,7 @@ export const PlaceDetailPage = () => {
         + Добавить чек
       </button>
 
-      <div className="animate-fade-in delay-500">
+      <div>
         <CheckList
           checks={place.checks || []}
           onEditCheck={handleEditCheck}

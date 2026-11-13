@@ -1,0 +1,50 @@
+.receipts { margin: 18px 0 40px; }
+.receipts__heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 16px; }
+.receipts__heading h2 { font-size: 20px; color: #172a4b; }
+.receipts__heading > span { font-size: 13px; color: #6d7d94; }
+.receipts__list { display: grid; gap: 11px; }
+.receipt-card { background: #fff; border: 1px solid #e2e8f1; border-radius: 13px; overflow: hidden; box-shadow: 0 2px 8px #172c450a; }
+.receipt-card__summary {
+  width: 100%; background: transparent; display: flex; align-items: center;
+  text-align: left; gap: 16px; padding: 17px 19px; color: #1c304b;
+}
+.receipt-card__summary:hover { background: #f8faff; }
+.receipt-card__summary:focus-visible { outline: 3px solid #88a1f1; outline-offset: -3px; }
+.receipt-card__primary { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.receipt-card__date { font-size: 15px; font-weight: 700; line-height: 1.3; }
+.receipt-card__subtitle { font-size: 12px; color: #8290a2; }
+.receipt-card__numbers { display: grid; justify-items: end; gap: 4px; white-space: nowrap; }
+.receipt-card__numbers strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.receipt-card__numbers > span { color: #667a94; font-size: 12px; }
+.receipt-card__chevron { color: #8b9bb1; font-size: 23px; min-width: 16px; text-align: center; }
+.receipt-card__details { padding: 4px 19px 16px; border-top: 1px solid #edf1f6; }
+.receipt-card__comment { border-left: 3px solid #b6c8ff; margin: 12px 0; padding: 7px 12px; background: #f7f9ff; color: #4a5c79; border-radius: 0 7px 7px 0; font-size: 13px; }
+.receipt-card__no-items { color: #7a899b; padding: 15px 0; font-size: 13px; }
+.receipt-card__items { display: grid; }
+.receipt-card__item { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #edf1f6; }
+.receipt-card__item-name { overflow-wrap: anywhere; font-size: 14px; font-weight: 500; }
+.receipt-card__item-price { white-space: nowrap; font-size: 13px; font-variant-numeric: tabular-nums; color: #31415b; }
+.receipt-card__item-rating { min-width: 68px; white-space: nowrap; color: #687a95; font-size: 12px; }
+.receipt-card__item-actions { display: flex; gap: 5px; }
+.receipt-card__item-actions button { background: #f0f4f9; color: #526680; border-radius: 7px; padding: 6px 9px; }
+.receipt-card__item-actions button:hover { background: #e4eaf5; }
+.receipt-card__footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-top: 15px; }
+.receipt-card__add { background: #eff3ff; color: #385cce; padding: 9px 12px; font-weight: 600; border-radius: 8px; font-size: 13px; }
+.receipt-card__footer-actions { display: flex; gap: 7px; }
+.receipt-card__footer-actions button { padding: 8px 11px; border: 1px solid #dfe6f0; color: #405672; background: white; border-radius: 8px; font-size: 12px; }
+.receipt-card__footer-actions button.receipt-card__delete { color: #b34b52; }
+.receipts-empty { text-align: center; background: white; border: 1px dashed #cbd6e5; border-radius: 14px; padding: 40px 18px; color: #66798f; }
+.receipts-empty > span { font-size: 32px; }
+.receipts-empty h3 { color: #243853; margin: 7px 0; }
+@media (max-width: 640px) {
+  .receipt-card__summary { padding: 14px; gap: 9px; }
+  .receipt-card__numbers strong { font-size: 14px; }
+  .receipt-card__details { padding: 3px 13px 14px; }
+  .receipt-card__item { grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px 10px; }
+  .receipt-card__item-name { grid-column: 1; }
+  .receipt-card__item-price { grid-column: 2; }
+  .receipt-card__item-rating { grid-column: 1; grid-row: 2; }
+  .receipt-card__item-actions { grid-column: 3; grid-row: 1 / 3; }
+  .receipt-card__footer { align-items: stretch; }
+  .receipt-card__footer-actions { justify-content: flex-end; }
+}

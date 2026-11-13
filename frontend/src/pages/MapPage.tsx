@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapController } from '../components/Map/MapController';
 import { SearchBox } from '../components/Map/SearchBox';
+import { PlacesPanel } from '../components/Map/PlacesPanel';
+import '../components/Map/places-panel.css';
 import { usePlaces, useCreatePlace } from '../hooks/usePlaces';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useGeocode } from '../hooks/useGeocode';
@@ -56,38 +58,23 @@ const getEmoji = (rating: number | null) => {
 
 const MapMover = ({
   target,
-  places
+  markerRefs,
 }: {
   target: { lat: number; lng: number; placeId?: number } | null;
-  places: Place[];
+  markerRefs: MutableRefObject<Map<number, L.Marker>>;
 }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (!target) return;
-
-    // Проверяем валидность координат
-    if (isNaN(target.lat) || isNaN(target.lng)) {
-      return;
+    if (!target || !Number.isFinite(target.lat) || !Number.isFinite(target.lng)) return;
+    // Центрируем выбранное место. Leaflet popup не должен сдвигать карту.
+    map.setView([target.lat, target.lng], 15, { animate: false });
+    if (target.placeId != null) {
+      markerRefs.current.get(target.placeId)?.openPopup();
+    } else {
+      map.closePopup();
     }
-
-    map.closePopup();
-
-    map.setView([target.lat, target.lng], 15);
-
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        const pos = layer.getLatLng();
-        // Сравниваем с погрешностью 0.0001 (примерно 10 метров)
-        if (Math.abs(pos.lat - target.lat) < 0.0001 &&
-          Math.abs(pos.lng - target.lng) < 0.0001) {
-          setTimeout(() => {
-            layer.openPopup();
-          }, 300);
-        }
-      }
-    });
-  }, [target, map, places]);
+  }, [target, map, markerRefs]);
 
   return null;
 };
@@ -100,35 +87,18 @@ export const MapPage = () => {
   const { search: geocode, loading: geocodeLoading } = useGeocode();
 
   const [mapTarget, setMapTarget] = useState<{ lat: number; lng: number; placeId?: number } | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const markerRefs = useRef(new Map<number, L.Marker>());
+
+  const selectPlace = (place: Place) => {
+    setSelectedId(place.id);
+    setMapTarget({ lat: place.latitude, lng: place.longitude, placeId: place.id });
+    setPanelOpen(false);
+  };
 
   const defaultCenter: [number, number] = position || [60, 90];
   const defaultZoom = position ? 14 : 4;
-
-  const handleLocalSearch = (query: string) => {
-    if (!query.trim()) {
-      setMapTarget(null);
-      return;
-    }
-
-    const q = query.toLowerCase().trim();
-
-    const found = places?.find((place: Place) => {
-      const nameMatch = place.name.toLowerCase().includes(q);
-      const addressMatch = place.address && place.address.toLowerCase().includes(q);
-      return nameMatch || addressMatch;
-    });
-
-    if (found) {
-      setMapTarget({
-        lat: found.latitude,
-        lng: found.longitude,
-        placeId: found.id
-      });
-    } else {
-      alert('Место не найдено');
-      setMapTarget(null);
-    }
-  };
 
   const handleMapSearch = async (query: string) => {
     const result = await geocode(query);
@@ -147,16 +117,29 @@ export const MapPage = () => {
 
   const displayPlaces = places || [];
 
-  if (isLoading) return <div>Загрузка...</div>;
+  if (isLoading) return <div className="loading">Загрузка мест...</div>;
 
   return (
     <div style={{ position: 'relative', height: '100vh' }}>
+      <button
+        type="button"
+        className="places-toggle"
+        aria-controls="my-places-panel"
+        aria-expanded={panelOpen}
+        onClick={() => setPanelOpen(true)}
+      >
+        ☰ Мои места ({displayPlaces.length})
+      </button>
+      <PlacesPanel
+        places={displayPlaces}
+        open={panelOpen}
+        selectedId={selectedId}
+        onClose={() => setPanelOpen(false)}
+        onSelect={selectPlace}
+      />
       {/* Поиск */}
       <div className="search-container">
-        <SearchBox
-          onSearch={handleLocalSearch}
-          onGeocode={handleMapSearch}
-        />
+        <SearchBox onGeocode={handleMapSearch} />
         {geocodeLoading && <div className="search-loading">Поиск адреса...</div>}
       </div>
 
@@ -169,7 +152,7 @@ export const MapPage = () => {
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapController onAddPlace={onAddPlace} />
 
-        <MapMover target={mapTarget} places={displayPlaces} />
+        <MapMover target={mapTarget} markerRefs={markerRefs} />
 
         {displayPlaces.map((place: Place) => (
           <Marker
@@ -177,12 +160,11 @@ export const MapPage = () => {
             position={[place.latitude, place.longitude]}
             icon={getMarkerIcon(place.avg_rating)}
             ref={(ref) => {
-              if (ref) {
-                (ref as any)._placeId = place.id;
-              }
+              if (ref) markerRefs.current.set(place.id, ref);
+              else markerRefs.current.delete(place.id);
             }}
           >
-            <Popup>
+            <Popup autoPan={false}>
               <strong>{getEmoji(place.avg_rating)} {place.name}</strong><br />
               ⭐ {place.avg_rating || '—'} | ₽ {place.avg_price || '—'}<br />
               <Link to={`/place/${place.id}`}>Подробнее</Link>
