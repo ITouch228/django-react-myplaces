@@ -15,7 +15,7 @@ Browser -> React 18 / TypeScript / Vite
 Browser -> Leaflet / OpenStreetMap tiles / Nominatim
 ```
 
-Приложение состоит из независимых `frontend/` и `backend/`, соединённых REST API. Docker Compose нужен для локального запуска; документация собирается отдельно в Nginx-контейнере.
+Приложение состоит из независимых `frontend/` и `backend/`, соединённых REST API. Создание места инициируется кликом на карту в `MapController`, который передаёт координаты в `MapPage`; отдельный `CreatePlaceDialog` собирает имя и необязательный адрес. Мутация `useCreatePlace` отправляет POST и инвалидирует кеш `[\"places\"]` без ручного обновления страницы. Docker Compose нужен для локального запуска; документация собирается отдельно в Nginx-контейнере.
 
 ## Модель
 
