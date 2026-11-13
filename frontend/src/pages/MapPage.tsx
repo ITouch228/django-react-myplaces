@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapController } from '../components/Map/MapController';
 import { SearchBox } from '../components/Map/SearchBox';
 import { PlacesPanel } from '../components/Map/PlacesPanel';
+import { CreatePlaceDialog } from '../components/Map/CreatePlaceDialog';
 import '../components/Map/places-panel.css';
 import { usePlaces, useCreatePlace } from '../hooks/usePlaces';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -90,6 +91,8 @@ export const MapPage = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const markerRefs = useRef(new Map<number, L.Marker>());
+  const [newPlaceLocation, setNewPlaceLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const selectPlace = (place: Place) => {
     setSelectedId(place.id);
@@ -111,8 +114,21 @@ export const MapPage = () => {
     }
   };
 
-  const onAddPlace = ({ name, latitude, longitude }: CreatePlaceData) => {
-    return createPlace.mutateAsync({ name, latitude, longitude });
+  const pickLocation = useCallback((lat: number, lng: number) => {
+    setCreateError(null);
+    setNewPlaceLocation({ lat, lng });
+  }, []);
+
+  const savePlace = async (data: CreatePlaceData): Promise<void> => {
+    setCreateError(null);
+    try {
+      const created = await createPlace.mutateAsync(data);
+      setNewPlaceLocation(null);
+      setSelectedId(created.id);
+      setMapTarget({ lat: created.latitude, lng: created.longitude, placeId: created.id });
+    } catch {
+      setCreateError("Не удалось сохранить место. Проверь соединение и попробуй снова.");
+    }
   };
 
   const displayPlaces = places || [];
@@ -150,7 +166,7 @@ export const MapPage = () => {
         style={{ height: '100vh', width: '100%' }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MapController onAddPlace={onAddPlace} />
+        <MapController onPickLocation={pickLocation} />
 
         <MapMover target={mapTarget} markerRefs={markerRefs} />
 
@@ -174,6 +190,16 @@ export const MapPage = () => {
           </Marker>
         ))}
       </MapContainer>
+      <CreatePlaceDialog
+        coordinates={newPlaceLocation}
+        pending={createPlace.isPending}
+        error={createError}
+        onClose={() => {
+          setNewPlaceLocation(null);
+          setCreateError(null);
+        }}
+        onSave={savePlace}
+      />
     </div>
   );
 };
