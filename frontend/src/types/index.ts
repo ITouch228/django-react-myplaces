@@ -44,7 +44,7 @@ export type CreateCheckData = Omit<
 > & {
   items: Omit<CheckItem, "id">[];
 };
-export type CreatePlaceData = Pick<Place, "name" | "latitude" | "longitude">;
+export type CreatePlaceData = Pick<Place, "name" | "latitude" | "longitude"> & { address?: string };
 
 export type QueueItem = {
   resolve: (value: string) => void;
