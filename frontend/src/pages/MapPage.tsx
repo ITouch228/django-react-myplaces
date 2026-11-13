@@ -67,7 +67,8 @@ const MapMover = ({
 
   useEffect(() => {
     if (!target || !Number.isFinite(target.lat) || !Number.isFinite(target.lng)) return;
-    map.setView([target.lat, target.lng], 15, { animate: true });
+    // Центрируем выбранное место. Leaflet popup не должен сдвигать карту.
+    map.setView([target.lat, target.lng], 15, { animate: false });
     if (target.placeId != null) {
       markerRefs.current.get(target.placeId)?.openPopup();
     } else {
@@ -188,7 +189,7 @@ export const MapPage = () => {
               else markerRefs.current.delete(place.id);
             }}
           >
-            <Popup>
+            <Popup autoPan={false}>
               <strong>{getEmoji(place.avg_rating)} {place.name}</strong><br />
               ⭐ {place.avg_rating || '—'} | ₽ {place.avg_price || '—'}<br />
               <Link to={`/place/${place.id}`}>Подробнее</Link>
