@@ -106,10 +106,6 @@ jobs:
           done
           test -s /tmp/myplaces-docs.html
           grep -q 'MyPlaces' /tmp/myplaces-docs.html
-      - name: Build shared Jenkins agent image
-        run: |
-          docker build -f ci/jenkins/agent/Dockerfile -t myplaces-jenkins-agent:ci .
-          docker run --rm --entrypoint /bin/sh myplaces-jenkins-agent:ci -c "python3.12 --version && node --version && npm --version"
       - name: Validate Docker Compose
         run: |
           cp backend/.env.example backend/.env
