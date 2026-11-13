@@ -54,7 +54,7 @@ python -m mkdocs build --strict
 
 ## CI
 
-В репозитории есть `Jenkinsfile` для **общего Jenkins-контроллера** MyInventory. Создаётся отдельный Multibranch Pipeline job `MyPlaces`, без нового Jenkins-сервера. Для его запуска нужен Linux agent с Python 3.12 и Node.js 22, label `myplaces-python312-node22`. Полная инструкция: [Единый Jenkins](docs/jenkins.md).
+В репозитории есть `Jenkinsfile` для **общего Jenkins-контроллера** MyInventory. Создаётся отдельный Multibranch Pipeline job `MyPlaces`, без нового Jenkins-сервера. Для запуска используется **тот же агент MyInventory** с Python 3.12 и Node.js 22, label `shared-ci`, один executor. Полная инструкция: [Единый Jenkins](docs/jenkins.md).
 
 GitHub Actions пока сохранён как резервный проверенный CI: проверяет backend, frontend и документацию. Он может быть отключён отдельной задачей только после успешной проверки Jenkins.
 
