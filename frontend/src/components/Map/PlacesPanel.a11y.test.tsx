@@ -15,29 +15,36 @@ const savedPlace = {
   total_checks: 0,
 } as Place;
 
-describe("PlacesPanel search controls", () => {
-  it("distinguishes input clear from resetting empty results", () => {
-    render(
-      <MemoryRouter>
-        <PlacesPanel
-          places={[savedPlace]}
-          open
-          selectedId={null}
-          onClose={vi.fn()}
-          onSelect={vi.fn()}
-        />
-      </MemoryRouter>,
-    );
+const renderPanel = () =>
+  render(
+    <MemoryRouter>
+      <PlacesPanel places={[savedPlace]} open selectedId={null} onClose={vi.fn()} onSelect={vi.fn()} />
+    </MemoryRouter>,
+  );
 
+describe("PlacesPanel search reset", () => {
+  it("shows exactly one reset control for an unmatched search", () => {
+    renderPanel();
     const input = screen.getByRole("searchbox", { name: "Поиск по моим местам" });
-    fireEvent.change(input, { target: { value: "Несуществующее" } });
+    expect(screen.queryByRole("button", { name: "Сбросить поиск" })).toBeNull();
 
-    expect(screen.getByRole("button", { name: "Очистить поле поиска" })).toBeTruthy();
+    fireEvent.change(input, { target: { value: "Несуществующее" } });
+    expect(screen.getByText("Ничего не найдено")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Сбросить поиск" })).toHaveLength(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Сбросить поиск" }));
     expect((input as HTMLInputElement).value).toBe("");
     expect(screen.getByRole("button", { name: "Показать на карте: Кофейня" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Очистить поле поиска" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Сбросить поиск" })).toBeNull();
+  });
+
+  it("also allows resetting a query that has results", () => {
+    renderPanel();
+    const input = screen.getByRole("searchbox", { name: "Поиск по моим местам" });
+    fireEvent.change(input, { target: { value: "Коф" } });
+    expect(screen.getByRole("button", { name: "Показать на карте: Кофейня" })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Сбросить поиск" })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Сбросить поиск" }));
+    expect((input as HTMLInputElement).value).toBe("");
   });
 });
