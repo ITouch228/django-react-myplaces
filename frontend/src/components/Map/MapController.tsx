@@ -1,13 +1,13 @@
 import { useEffect } from "react";
+import type { LeafletMouseEvent } from "leaflet";
 import { useMap } from "react-leaflet";
 import { useGeolocation } from "../../hooks/useGeolocation";
-import type { CreatePlaceData, Place } from "../../types";
 
 interface MapControlsProps {
-  onAddPlace: (data: CreatePlaceData) => Promise<Place>;
+  onPickLocation: (latitude: number, longitude: number) => void;
 }
 
-export function MapController({ onAddPlace }: MapControlsProps) {
+export function MapController({ onPickLocation }: MapControlsProps) {
   const map = useMap();
   const { position } = useGeolocation();
 
@@ -19,7 +19,8 @@ export function MapController({ onAddPlace }: MapControlsProps) {
 
   useEffect(() => {
     const btn = document.createElement("button");
-    btn.innerHTML = "📍 Моё местоположение";
+    btn.type = "button";
+    btn.textContent = "📍 Моё местоположение";
     btn.style.cssText = `
             position: absolute;
             bottom: 30px;
@@ -35,24 +36,22 @@ export function MapController({ onAddPlace }: MapControlsProps) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         `;
 
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
       if (!navigator.geolocation) {
         alert("Геолокация не поддерживается");
         return;
       }
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+        (location) => {
+          map.setView([location.coords.latitude, location.coords.longitude], 15);
         },
         () => alert("Не удалось определить местоположение"),
       );
     });
 
     const container = document.getElementById("map-controls");
-    if (container) {
-      container.appendChild(btn);
-    }
+    container?.appendChild(btn);
 
     return () => {
       btn.remove();
@@ -60,28 +59,15 @@ export function MapController({ onAddPlace }: MapControlsProps) {
   }, [map]);
 
   useEffect(() => {
-    const handleMapClick = async (e: any) => {
-      const { lat, lng } = e.latlng;
-      const name = prompt("Введите название места:");
-      if (!name) return;
-      try {
-        await onAddPlace({
-          name,
-          latitude: lat,
-          longitude: lng,
-        });
-      } catch (err: any) {
-        alert("Ошибка: " + (err.message || "Неизвестная ошибка"));
-      }
+    const handleMapClick = (event: LeafletMouseEvent) => {
+      onPickLocation(event.latlng.lat, event.latlng.lng);
     };
 
     map.on("click", handleMapClick);
-
     return () => {
       map.off("click", handleMapClick);
     };
-  }, [map, onAddPlace]);
+  }, [map, onPickLocation]);
 
-  // TODO: сделать через React Portal
   return <div id="map-controls" />;
 }

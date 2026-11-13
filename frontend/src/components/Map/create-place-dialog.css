@@ -1,0 +1,53 @@
+.place-dialog__backdrop {
+  position: fixed; inset: 0; z-index: 2000;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(15, 28, 51, .44);
+}
+.place-dialog {
+  width: min(100%, 460px); max-height: calc(100dvh - 32px);
+  overflow-y: auto; background: #fff; color: #1c314f;
+  border: 1px solid #e4eaf2; border-radius: 18px;
+  box-shadow: 0 26px 65px rgba(12, 31, 60, .28);
+}
+.place-dialog__header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; padding: 22px 24px 15px; border-bottom: 1px solid #edf1f7;
+}
+.place-dialog__eyebrow {
+  display: block; color: #5272d9; font-size: 11px;
+  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+}
+.place-dialog__header h2 { font-size: 23px; margin-top: 4px; }
+.place-dialog__close {
+  padding: 8px 12px; background: #f1f4f9; border-radius: 9px;
+  color: #546780;
+}
+.place-dialog__body { padding: 20px 24px; display: grid; gap: 8px; }
+.place-dialog__body label { font-size: 13px; font-weight: 650; color: #435570; }
+.place-dialog__body input {
+  width: 100%; padding: 11px 12px; margin-bottom: 8px;
+  border: 1px solid #ced9e9; background: #fff; border-radius: 10px;
+  color: #1c314f;
+}
+.place-dialog__body input:focus {
+  border-color: #5d7be9; box-shadow: 0 0 0 3px #5d7be924;
+}
+.place-dialog__coordinates {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px;
+  padding: 11px 12px; border-radius: 10px; background: #f5f8fd;
+  color: #6a7890; font-size: 12px;
+}
+.place-dialog__coordinates span:last-child { font-variant-numeric: tabular-nums; }
+.place-dialog__error { padding: 10px 12px; color: #ad3239; background: #fff1f2; border-radius: 9px; font-size: 13px; }
+.place-dialog__actions { display: flex; gap: 10px; justify-content: flex-end; padding: 15px 24px 22px; }
+.place-dialog__actions button { padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+.place-dialog__cancel { color: #4b5e78; background: #edf2f8; }
+.place-dialog__submit { color: #fff; background: #4567e8; }
+.place-dialog__submit:hover:not(:disabled) { background: #3655ce; }
+@media (max-width: 640px) {
+  .place-dialog__backdrop { align-items: end; padding: 0; }
+  .place-dialog { width: 100%; border-radius: 20px 20px 0 0; max-height: 90dvh; }
+  .place-dialog__header { padding: 18px; }
+  .place-dialog__body { padding: 17px 18px; }
+  .place-dialog__actions { padding: 13px 18px max(20px, env(safe-area-inset-bottom)); }
+}
