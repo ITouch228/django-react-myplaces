@@ -75,7 +75,7 @@ pipeline {
                         npm ci --no-audit --no-fund
                         npm run lint
                         npm run build
-                        npm run test -- --run --passWithNoTests
+                        npm run test:ci
                     '''
                 }
             }
