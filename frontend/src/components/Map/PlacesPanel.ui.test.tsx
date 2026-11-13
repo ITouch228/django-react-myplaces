@@ -71,7 +71,7 @@ describe("PlacesPanel interactions", () => {
     fireEvent.click(screen.getByRole("button", { name: "Показать на карте: Бистро" }));
     expect(onSelect).toHaveBeenCalledOnce();
     expect(onSelect).toHaveBeenCalledWith(places[2]);
-    expect(screen.getAllByRole("link", { name: "Открыть историю чеков" })[2].getAttribute("href")).toBe("/place/2");
+    expect(screen.getAllByRole("link", { name: "Открыть историю чеков" })[0].getAttribute("href")).toBe("/place/3");
     fireEvent.click(screen.getByRole("button", { name: "Закрыть список мест" }));
     expect(onClose).toHaveBeenCalledOnce();
   });
