@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -61,13 +61,13 @@ const MapMover = ({
   markerRefs,
 }: {
   target: { lat: number; lng: number; placeId?: number } | null;
-  markerRefs: React.MutableRefObject<Map<number, L.Marker>>;
+  markerRefs: MutableRefObject<Map<number, L.Marker>>;
 }) => {
   const map = useMap();
 
   useEffect(() => {
     if (!target || !Number.isFinite(target.lat) || !Number.isFinite(target.lng)) return;
-    map.flyTo([target.lat, target.lng], 15, { duration: 0.6 });
+    map.setView([target.lat, target.lng], 15, { animate: true });
     if (target.placeId != null) {
       markerRefs.current.get(target.placeId)?.openPopup();
     } else {
