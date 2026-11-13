@@ -963,3 +963,25 @@ select.form-control {
         width: 100%;
     }
 }
+/* ===== PLACE DETAILS: QUIET HEADER (NO STAGGERED ENTRANCE) ===== */
+.place-details-page { padding-top: 26px; }
+.place-details-page__header { gap: 14px; align-items: center; flex-wrap: wrap; }
+.place-details-page__header .place-name {
+  flex: 1 1 220px;
+  margin: 0;
+  color: #192f50;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.place-details-page__header .btn-danger { margin-left: 0 !important; }
+.place-details-page > .stats-bar {
+  background: #fff;
+  border-color: #e4eaf3;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(20,40,70,.04);
+}
+@media (max-width: 640px) {
+  .place-details-page { padding-top: 16px; }
+  .place-details-page__header .place-name { order: -1; flex-basis: 100%; }
+  .place-details-page__header .btn-danger { margin-left: auto !important; }
+}
