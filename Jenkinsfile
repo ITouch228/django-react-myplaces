@@ -1,7 +1,7 @@
 // Runs on the EXISTING Jenkins controller (MyInventory), using a compatible agent.
 // No new controller, Docker socket, application DB, or deployment privileges.
 pipeline {
-    agent { label 'myplaces-python312-node22' }
+    agent { label 'shared-ci' }
 
     options {
         skipDefaultCheckout(true)
