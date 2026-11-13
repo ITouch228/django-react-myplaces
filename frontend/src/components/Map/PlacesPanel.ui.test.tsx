@@ -69,7 +69,8 @@ describe("PlacesPanel interactions", () => {
   it("selects exactly the clicked place and keeps the details link", () => {
     const { onSelect, onClose } = renderPanel();
     fireEvent.click(screen.getByRole("button", { name: "Показать на карте: Бистро" }));
-    expect(onSelect).toHaveBeenCalledExactlyOnceWith(places[2]);
+    expect(onSelect).toHaveBeenCalledOnce();
+    expect(onSelect).toHaveBeenCalledWith(places[2]);
     expect(screen.getAllByRole("link", { name: "Открыть историю чеков" })[2].getAttribute("href")).toBe("/place/2");
     fireEvent.click(screen.getByRole("button", { name: "Закрыть список мест" }));
     expect(onClose).toHaveBeenCalledOnce();
