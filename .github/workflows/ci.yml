@@ -83,7 +83,7 @@ jobs:
       - name: TypeScript and production build
         run: npm run build
       - name: Unit tests
-        run: npm run test -- --run --passWithNoTests
+        run: npm run test:ci
 
   docs:
     name: Documentation / MkDocs strict

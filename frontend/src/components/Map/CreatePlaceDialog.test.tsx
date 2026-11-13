@@ -64,4 +64,42 @@ describe("create place dialog", () => {
     expect((screen.getByRole("button", { name: "Сохраняем..." }) as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByRole("button", { name: "Отмена" }) as HTMLButtonElement).disabled).toBe(true);
   });
+  it("closes on Escape when idle but not during an active save", () => {
+    const onClose = vi.fn();
+    const { rerender } = render(
+      <CreatePlaceDialog coordinates={coordinates} pending={false} error={null} onClose={onClose} onSave={vi.fn()} />,
+    );
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledOnce();
+    onClose.mockClear();
+    rerender(
+      <CreatePlaceDialog coordinates={coordinates} pending error={null} onClose={onClose} onSave={vi.fn()} />,
+    );
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("resets inputs when a different point is selected", () => {
+    const { rerender } = render(
+      <CreatePlaceDialog coordinates={coordinates} pending={false} error={null} onClose={vi.fn()} onSave={vi.fn()} />,
+    );
+    fireEvent.change(screen.getByLabelText("Название *"), { target: { value: "Кафе" } });
+    rerender(
+      <CreatePlaceDialog coordinates={{ lat: 51.5, lng: -0.12 }} pending={false} error={null} onClose={vi.fn()} onSave={vi.fn()} />,
+    );
+    expect((screen.getByLabelText("Название *") as HTMLInputElement).value).toBe("");
+    expect(screen.getByText("51.50000, -0.12000")).toBeTruthy();
+  });
+
+  it("requires a name of at most 200 characters", () => {
+    const onSave = vi.fn();
+    render(
+      <CreatePlaceDialog coordinates={coordinates} pending={false} error={null} onClose={vi.fn()} onSave={onSave} />,
+    );
+    fireEvent.change(screen.getByLabelText("Название *"), { target: { value: "X".repeat(201) } });
+    fireEvent.click(screen.getByRole("button", { name: "Сохранить место" }));
+    expect(screen.getByRole("alert").textContent).toContain("200");
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
 });

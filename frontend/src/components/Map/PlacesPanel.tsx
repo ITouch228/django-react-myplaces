@@ -95,9 +95,6 @@ export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: Pla
             <span aria-hidden="true">⌕</span>
             <strong>Ничего не найдено</strong>
             <p>Попробуй другое название или адрес.</p>
-            <button type="button" className="places-panel__reset" onClick={() => setQuery("")}>
-              Сбросить поиск
-            </button>
           </div>
         ) : (
           <ul className="places-panel__list">
