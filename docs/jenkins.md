@@ -18,11 +18,38 @@
 
 Текущий агент MyInventory `myinventory-node22` уже содержит Node 22 и Python из дистрибутива, но **версия Python 3.12 не подтверждена**. Нельзя считать его совместимым с Django 6.1 без проверки.
 
-Для MyPlaces Jenkinsfile использует label `myplaces-python312-node22`. Можно дать этот label существующему агенту **только если** `python3.12 --version` работает, либо подключить второй небольшой агент к тому же Jenkins-контроллеру. Это не второй Jenkins-сервер. На одном агенте допускается обслуживать все три репозитория при условии совместимости toolchain и разумного числа executors.
+Для MyPlaces Jenkinsfile использует label `myplaces-python312-node22`. В репозитории есть **отдельный inbound-agent** (`ci/jenkins/agent/Dockerfile`), содержащий Python 3.12 + Node 22. Он подключается к существующему контроллеру по внутренней Docker-сети; **второй Jenkins-сервер не создаётся**. Альтернатива: назначить label уже существующему агенту, если у него есть совместимый Python 3.12.
+
+### Запуск дополнительного агента
+
+1. В Jenkins создай **Manage Jenkins -> Nodes -> New Node**, имя `myplaces-python312-node22`, Permanent Agent, один executor, Remote root directory `/home/jenkins/agent`, Launch method **Launch agent by connecting it to the controller**, WebSocket.
+2. Скопируй выданный Jenkins secret. Проверь имя сети, в которой работает контроллер MyInventory: `docker network ls` (обычно `jenkins_ci`; фактическое имя может отличаться).
+3. Создай локальный файл `ci/jenkins/.env` из шаблона. Укажи `JENKINS_NETWORK` и `JENKINS_SECRET`. Никогда не коммить секрет.
+4. Из корня MyPlaces запусти:
+
+Windows PowerShell:
+
+```powershell
+Copy-Item ci/jenkins/.env.example ci/jenkins/.env
+# Заполни JENKINS_SECRET и реальное JENKINS_NETWORK
+docker compose -f ci/jenkins/compose.yaml up -d --build agent
+docker compose -f ci/jenkins/compose.yaml logs --tail=100 agent
+```
+
+Linux Bash:
+
+```bash
+cp ci/jenkins/.env.example ci/jenkins/.env
+# Заполни JENKINS_SECRET и реальное JENKINS_NETWORK
+docker compose -f ci/jenkins/compose.yaml up -d --build agent
+docker compose -f ci/jenkins/compose.yaml logs --tail=100 agent
+```
+
+Агент не содержит Jenkins-контроллер, не публикует порты и не получает Docker socket. Проверить, что Node появился **Online**, прежде чем запускать Pipeline.
 
 ## Подключение MyPlaces
 
-1. В существующем Jenkins зайти в **Manage Jenkins -> Nodes** и обеспечить Linux agent с label `myplaces-python312-node22`, Python 3.12, Node 22, Git, npm и Python venv.
+1. В существующем Jenkins убедиться, что агент `myplaces-python312-node22` в статусе **Online**, содержит Python 3.12, Node 22, Git и npm.
 2. Создать **New Item -> Multibranch Pipeline** с именем `MyPlaces`.
 3. Branch Source -> Git, URL `git@github.com:ITouch228/django-react-myplaces.git`.
 4. Credentials: SSH Username with private key (пользователь `git`) из **Jenkins Credentials**, без приватных ключей в репозитории.
