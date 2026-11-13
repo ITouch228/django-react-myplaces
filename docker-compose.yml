@@ -30,6 +30,15 @@ services:
     networks:
       - network
 
+  docs:
+    build:
+      context: .
+      dockerfile: docs/Dockerfile
+    container_name: my_places-docs
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8093:80"
+
 networks:
   network:
     driver: bridge
