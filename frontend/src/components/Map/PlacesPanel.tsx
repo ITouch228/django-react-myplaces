@@ -41,7 +41,6 @@ export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: Pla
       className={`places-panel ${open ? "places-panel--open" : ""}`}
       aria-label="Мои места"
       aria-hidden={!open}
-      inert={!open}
     >
       <div className="places-panel__header">
         <div>
