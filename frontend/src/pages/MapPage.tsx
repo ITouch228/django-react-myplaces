@@ -100,28 +100,6 @@ export const MapPage = () => {
   const defaultCenter: [number, number] = position || [60, 90];
   const defaultZoom = position ? 14 : 4;
 
-  const handleLocalSearch = (query: string) => {
-    if (!query.trim()) {
-      setMapTarget(null);
-      return;
-    }
-
-    const q = query.toLowerCase().trim();
-
-    const found = places?.find((place: Place) => {
-      const nameMatch = place.name.toLowerCase().includes(q);
-      const addressMatch = place.address && place.address.toLowerCase().includes(q);
-      return nameMatch || addressMatch;
-    });
-
-    if (found) {
-      selectPlace(found);
-    } else {
-      alert('Место не найдено');
-      setMapTarget(null);
-    }
-  };
-
   const handleMapSearch = async (query: string) => {
     const result = await geocode(query);
 
@@ -161,10 +139,7 @@ export const MapPage = () => {
       />
       {/* Поиск */}
       <div className="search-container">
-        <SearchBox
-          onSearch={handleLocalSearch}
-          onGeocode={handleMapSearch}
-        />
+        <SearchBox onGeocode={handleMapSearch} />
         {geocodeLoading && <div className="search-loading">Поиск адреса...</div>}
       </div>
 
