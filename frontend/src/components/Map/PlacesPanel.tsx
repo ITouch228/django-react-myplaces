@@ -65,7 +65,7 @@ export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: Pla
             disabled={!open}
           />
           {query && (
-            <button type="button" onClick={() => setQuery("")} aria-label="Сбросить поиск">✕</button>
+            <button type="button" onClick={() => setQuery("")} aria-label="Очистить поле поиска">✕</button>
           )}
         </div>
         <div className="places-panel__sort-row">
