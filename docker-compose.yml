@@ -3,9 +3,9 @@ services:
     build:
       context: ./backend
       target: dev
-    container_name: django-backend
+    container_name: my_places-backend
     ports:
-      - "8000:8000"
+      - "8001:8001"
     volumes:
       - ./backend:/app
     env_file:
@@ -17,9 +17,9 @@ services:
     build:
       context: ./frontend
       target: dev
-    container_name: react-frontend
+    container_name: my_places-frontend
     ports:
-      - "5173:5173"
+      - "8071:8071"
     volumes:
       - ./frontend:/app
       - /app/node_modules

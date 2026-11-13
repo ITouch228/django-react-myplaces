@@ -28,7 +28,7 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
 
 
 # ============================================================
@@ -43,4 +43,4 @@ RUN chmod +x /entrypoint.sh
 RUN python manage.py collectstatic --noinput
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8001", "project.wsgi:application"]
