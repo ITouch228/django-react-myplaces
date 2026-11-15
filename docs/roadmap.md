@@ -18,6 +18,12 @@
 | Хранилище | SQLite, Django migrations | Нет проверенного переноса/восстановления в PostgreSQL |
 | Качество | Jenkinsfile, общий Jenkins-агент, MkDocs Material, Ruff, mypy, backend-тесты, frontend-сборка и начальные Vitest-тесты | Компонентные тесты расширяются в `test/frontend-component-baseline`; E2E и Docker runtime smoke ещё нет |
 
+## Актуальное предложение по направлению продукта
+
+Рассматривается переход на **React Native + Expo + локальную SQLite** с необязательной синхронизацией с Django. Это пока **предложение, не утверждённая миграция**. Подробности, риски и отдельные фазы в [проекте мобильной архитектуры](mobile-first-proposal.md).
+
+Ветка `fix/mobile-map-controls` устраняет проблемы расположения мобильных кнопок карты, переносит GPS-кнопку из Leaflet в React и делает запрос геолокации явным, с объяснением требования HTTPS.
+
 ## Сейчас в разработке
 
 **QA-01: `test/frontend-component-baseline`** (текущая ветка): расширение React Testing Library-тестов формы и панели мест, настройка `npm run test:ci` в Jenkins и Actions и удаление `--passWithNoTests`. Этот этап пока **не включён в main**. Форма создания места (UX-01) уже есть в основной ветке.
