@@ -82,7 +82,7 @@ const MapMover = ({
 
 // ===== Основной компонент =====
 export const MapPage = () => {
-  const { position } = useGeolocation();
+  const { position, error: geolocationError, isLocating, requestPosition } = useGeolocation();
   const { data: places, isLoading } = usePlaces();
   const createPlace = useCreatePlace();
   const { search: geocode, loading: geocodeLoading } = useGeocode();
@@ -131,12 +131,19 @@ export const MapPage = () => {
     }
   };
 
+  const handleLocate = async () => {
+    const coordinates = await requestPosition();
+    if (!coordinates) return;
+    setSelectedId(null);
+    setMapTarget({ lat: coordinates[0], lng: coordinates[1] });
+  };
+
   const displayPlaces = places || [];
 
   if (isLoading) return <div className="loading">Загрузка мест...</div>;
 
   return (
-    <div style={{ position: 'relative', height: '100vh' }}>
+    <div className="map-page">
       <button
         type="button"
         className="places-toggle"
@@ -153,6 +160,21 @@ export const MapPage = () => {
         onClose={() => setPanelOpen(false)}
         onSelect={selectPlace}
       />
+      <button
+        type="button"
+        className="map-locate"
+        aria-label="Перейти к моему местоположению"
+        onClick={handleLocate}
+        disabled={isLocating}
+      >
+        {isLocating ? "Определяем..." : "◎ Моё местоположение"}
+      </button>
+      {geolocationError && (
+        <div className="map-location-error" role="alert">
+          <span>{geolocationError}</span>
+          <button type="button" onClick={handleLocate}>Повторить</button>
+        </div>
+      )}
       {/* Поиск */}
       <div className="search-container">
         <SearchBox onGeocode={handleMapSearch} />
@@ -163,7 +185,7 @@ export const MapPage = () => {
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
-        style={{ height: '100vh', width: '100%' }}
+        style={{ height: '100%', width: '100%' }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapController onPickLocation={pickLocation} />
