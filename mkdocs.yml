@@ -59,6 +59,7 @@ nav:
       - Работа с местами и чеками: user-guide.md
   - Архитектура:
       - Устройство системы: architecture.md
+      - Offline-first мобильный клиент (предложение): mobile-first-proposal.md
       - HTTP API: api.md
   - Разработчику:
       - Тестирование: testing.md
