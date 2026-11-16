@@ -16,7 +16,7 @@ export function getSavedPlaceCoordinates(places: Place[]): [number, number][] {
         Math.abs(place.latitude) <= 90 &&
         Math.abs(place.longitude) <= 180,
     )
-    .map((place) => [place.latitude, place.longitude]);
+    .map((place): [number, number] => [place.latitude, place.longitude]);
 }
 
 interface InitialMapViewportProps {
