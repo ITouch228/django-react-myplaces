@@ -4,6 +4,7 @@ import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapController } from '../components/Map/MapController';
+import { InitialMapViewport, getSavedPlaceCoordinates } from '../components/Map/InitialMapViewport';
 import { SearchBox } from '../components/Map/SearchBox';
 import { PlacesPanel } from '../components/Map/PlacesPanel';
 import { CreatePlaceDialog } from '../components/Map/CreatePlaceDialog';
@@ -91,6 +92,7 @@ export const MapPage = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const markerRefs = useRef(new Map<number, L.Marker>());
+  const autoLocateStarted = useRef(false);
   const [newPlaceLocation, setNewPlaceLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -100,8 +102,19 @@ export const MapPage = () => {
     setPanelOpen(false);
   };
 
-  const defaultCenter: [number, number] = position || [60, 90];
-  const defaultZoom = position ? 14 : 4;
+  // Initial location is best-effort: saved places are displayed immediately,
+  // then GPS takes priority if permitted, without waiting for the GPS timeout.
+  useEffect(() => {
+    if (autoLocateStarted.current) return;
+    autoLocateStarted.current = true;
+    if (window.isSecureContext && navigator.geolocation) {
+      void requestPosition();
+    }
+  }, [requestPosition]);
+
+  const savedCoordinates = getSavedPlaceCoordinates(places ?? []);
+  const defaultCenter: [number, number] = savedCoordinates[0] ?? [20, 0];
+  const defaultZoom = savedCoordinates.length > 0 ? 13 : 2;
 
   const handleMapSearch = async (query: string) => {
     const result = await geocode(query);
@@ -189,6 +202,11 @@ export const MapPage = () => {
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapController onPickLocation={pickLocation} />
+        <InitialMapViewport
+          places={displayPlaces}
+          position={position}
+          manualTargetActive={mapTarget !== null || newPlaceLocation !== null}
+        />
 
         <MapMover target={mapTarget} markerRefs={markerRefs} />
 
