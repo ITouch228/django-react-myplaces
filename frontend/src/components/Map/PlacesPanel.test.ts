@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterAndSortPlaces } from "./PlacesPanel";
+import { filterAndSortPlaces } from "./places-filter-sort";
 import type { Place } from "../../types";
 
 const place = (id: number, name: string, address: string, rating: number | null, checks: number) =>
