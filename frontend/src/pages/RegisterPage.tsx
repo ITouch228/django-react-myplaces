@@ -30,6 +30,7 @@ export const RegisterPage = () => {
 
   const update = (field: RegistrationField, value: string) => {
     setValues((previous) => ({ ...previous, [field]: value }));
+    setTouched((previous) => ({ ...previous, [field]: true }));
     setApiErrors((previous) => ({ ...previous, [field]: undefined, form: undefined }));
   };
 
