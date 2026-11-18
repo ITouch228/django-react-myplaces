@@ -1,11 +1,11 @@
-// Runs on the EXISTING Jenkins controller (MyInventory), using a compatible agent.
-// No new controller, Docker socket, application DB, or deployment privileges.
+// MyPlaces CI: existing Jenkins controller + one shared, unprivileged agent.
+// No Android builds, Docker socket, application database, or deployment access.
 pipeline {
     agent { label 'shared-ci' }
 
     options {
         skipDefaultCheckout(true)
-        disableConcurrentBuilds(abortPrevious: true)
+        disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '5'))
         timeout(time: 35, unit: 'MINUTES')
         timestamps()
@@ -22,16 +22,23 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout & runtimes') {
             steps {
                 checkout scm
-                sh 'git rev-parse --short HEAD && python3.12 --version && node --version && npm --version'
+                sh '''
+                    set -eu
+                    git rev-parse --short HEAD
+                    python3.12 --version
+                    node --version
+                    npm --version
+                '''
             }
         }
 
         stage('Python dependencies') {
             steps {
                 sh '''
+                    set -eu
                     python3.12 -m venv .ci-venv
                     . .ci-venv/bin/activate
                     python -m pip install --disable-pip-version-check -r backend/requirements.txt -r backend/requirements-dev.txt
@@ -44,6 +51,7 @@ pipeline {
             steps {
                 dir('backend') {
                     sh '''
+                        set -eu
                         . ../.ci-venv/bin/activate
                         ruff check .
                         ruff format --check .
@@ -59,6 +67,7 @@ pipeline {
             steps {
                 dir('backend') {
                     sh '''
+                        set -eu
                         . ../.ci-venv/bin/activate
                         coverage run manage.py test
                         coverage report
@@ -68,11 +77,19 @@ pipeline {
             }
         }
 
+        stage('Frontend dependencies') {
+            steps {
+                dir('frontend') {
+                    sh 'npm ci --no-audit --no-fund'
+                }
+            }
+        }
+
         stage('Frontend quality') {
             steps {
                 dir('frontend') {
                     sh '''
-                        npm ci --no-audit --no-fund
+                        set -eu
                         npm run lint
                         npm run build
                         npm run test:ci
@@ -81,9 +98,10 @@ pipeline {
             }
         }
 
-        stage('MkDocs strict and smoke') {
+        stage('MkDocs strict') {
             steps {
                 sh '''
+                    set -eu
                     . .ci-venv/bin/activate
                     python -m mkdocs build --strict
                     test -s site/index.html
@@ -95,7 +113,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'backend/coverage.xml', allowEmptyArchive: true, fingerprint: false
+            archiveArtifacts artifacts: 'backend/coverage.xml', allowEmptyArchive: true
             sh 'rm -rf .ci-venv site || true'
         }
     }
