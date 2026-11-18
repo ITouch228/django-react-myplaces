@@ -18,6 +18,10 @@
 | Хранилище | SQLite, Django migrations | Нет проверенного переноса/восстановления в PostgreSQL |
 | Качество | Jenkinsfile, общий Jenkins-агент, MkDocs Material, Ruff, mypy, backend-тесты, frontend-сборка и начальные Vitest-тесты | Компонентные тесты расширяются в `test/frontend-component-baseline`; E2E и Docker runtime smoke ещё нет |
 
+## Улучшения интерфейса авторизации
+
+Ветка `feat/auth-live-validation-motion` создана от `main`. Реализуется регистрация с мгновенной валидацией полей и отображением ошибок Django REST Framework, общий адаптивный стиль регистрации и входа, мягкие микроанимации и поддержка `prefers-reduced-motion`. Изменения не относятся к `main` до ручного merge и зелёного Jenkins.
+
 ## Актуальное предложение по направлению продукта
 
 Рассматривается переход на **React Native + Expo + локальную SQLite** с необязательной синхронизацией с Django. Это пока **предложение, не утверждённая миграция**. Подробности, риски и отдельные фазы в [проекте мобильной архитектуры](mobile-first-proposal.md).

@@ -1,125 +1,115 @@
-import React, { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import {
+  extractRegistrationApiErrors,
+  validateRegistration,
+  type RegistrationErrors,
+  type RegistrationField,
+  type RegistrationValues,
+} from "./registration-validation";
+import "./auth-pages.css";
+
+const initialValues: RegistrationValues = {
+  username: "", email: "", password: "", confirmPassword: "",
+};
 
 export const RegisterPage = () => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [values, setValues] = useState<RegistrationValues>(initialValues);
+  const [touched, setTouched] = useState<Partial<Record<RegistrationField, boolean>>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [apiErrors, setApiErrors] = useState<RegistrationErrors & { form?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const errors = validateRegistration(values);
+  const messageFor = (field: RegistrationField) =>
+    (touched[field] || submitted) ? errors[field] || apiErrors[field] : undefined;
 
-    if (password !== confirmPassword) {
-      setError("Пароли не совпадают");
-      return;
-    }
+  const update = (field: RegistrationField, value: string) => {
+    setValues((previous) => ({ ...previous, [field]: value }));
+    setTouched((previous) => ({ ...previous, [field]: true }));
+    setApiErrors((previous) => ({ ...previous, [field]: undefined, form: undefined }));
+  };
 
-    if (password.length < 4) {
-      setError("Пароль должен содержать минимум 4 символа");
-      return;
-    }
-
-    setError("");
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading) return;
+    setSubmitted(true);
+    if (Object.keys(errors).length > 0) return;
+    setApiErrors({});
     setLoading(true);
-
     try {
-      await register(username, password, email);
+      await register(values.username.trim(), values.password, values.email.trim());
       navigate("/");
-    } catch (err: unknown) {
-      const msg =
-        err && typeof err === "object" && "response" in err
-          ? (err.response as { data?: { message?: string } })?.data?.message
-          : "Ошибка регистрации";
-
-      setError(msg);
+    } catch (error: unknown) {
+      setApiErrors(extractRegistrationApiErrors(error));
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="container-sm">
-      <div className="card" style={{ marginTop: 50 }}>
-        <h2 className="text-center">Регистрация</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Имя пользователя</label>
-            <input
-              className="form-control"
-              type="text"
-              placeholder="Имя пользователя"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
+  const field = (
+    name: RegistrationField,
+    label: string,
+    type: string,
+    placeholder: string,
+    autoComplete: string,
+  ) => {
+    const message = messageFor(name);
+    const showValid = (touched[name] || submitted) && values[name].length > 0 && !errors[name] && !apiErrors[name];
+    const isPassword = name === "password" || name === "confirmPassword";
 
-          <div className="form-group">
-            <label className="form-label">
-              Электронная почта (опционально)
-            </label>
-            <input
-              className="form-control"
-              type="email"
-              placeholder="Электронная почта"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Пароль</label>
-            <input
-              className="form-control"
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Повторите пароль</label>
-            <input
-              className="form-control"
-              type="password"
-              placeholder="Повторите пароль"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="text-center text-muted" style={{ color: "red" }}>
-              {error}
-            </div>
-          )}
-
-          <div className="flex gap-10 mt-16">
-            <button
-              className="btn btn-success btn-block"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? "Регистрация..." : "Зарегистрироваться"}
-            </button>
-            <Link
-              to="/login"
-              className="btn btn-secondary btn-block text-center"
-            >
-              Войти
-            </Link>
-          </div>
-        </form>
+    return (
+      <div className="auth-field" key={name}>
+        <label htmlFor={name}>{label}</label>
+        <div className={`auth-input-wrap ${message ? "auth-input-wrap--error" : showValid ? "auth-input-wrap--valid" : ""}`}>
+          <input
+            id={name}
+            type={isPassword && showPassword ? "text" : type}
+            autoComplete={autoComplete}
+            placeholder={placeholder}
+            value={values[name]}
+            disabled={loading}
+            aria-invalid={Boolean(message)}
+            aria-describedby={message ? `${name}-hint` : undefined}
+            onChange={(event) => update(name, event.target.value)}
+            onBlur={() => setTouched((current) => ({ ...current, [name]: true }))}
+          />
+          {showValid && <span className="auth-field__valid" aria-hidden="true">✓</span>}
+        </div>
+        {message && <p className="auth-field__error" id={`${name}-hint`} role="status">{message}</p>}
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <main className="auth-layout">
+      <section className="auth-card">
+        <div className="auth-header">
+          <div className="auth-logo" aria-hidden="true">📍</div>
+          <p className="auth-eyebrow">Твоя личная карта впечатлений</p>
+          <h1>Создать аккаунт</h1>
+          <p>Сохраняй любимые места, блюда и чеки в одном месте.</p>
+        </div>
+        <form onSubmit={handleSubmit} noValidate>
+          {field("username", "Имя пользователя", "text", "Как к тебе обращаться?", "username")}
+          {field("email", "Электронная почта (необязательно)", "email", "name@example.com", "email")}
+          {field("password", "Пароль", "password", "Минимум 5 символов", "new-password")}
+          {field("confirmPassword", "Повторите пароль", "password", "Повторите пароль", "new-password")}
+          <label className="auth-show-password">
+            <input type="checkbox" checked={showPassword} onChange={(event) => setShowPassword(event.target.checked)} />
+            Показать пароли
+          </label>
+          {apiErrors.form && <div className="auth-alert" role="alert">{apiErrors.form}</div>}
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? <><span className="auth-spinner" aria-hidden="true" /> Создаём аккаунт...</> : "Зарегистрироваться"}
+          </button>
+          <p className="auth-switch">Уже есть аккаунт? <Link to="/login">Войти</Link></p>
+        </form>
+      </section>
+    </main>
   );
 };
