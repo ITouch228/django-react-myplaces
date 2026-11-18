@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { CreatePlaceData } from "../../types";
 import "./create-place-dialog.css";
+import { validatePlaceName } from "./place-name-validation";
 
 type Coordinates = { lat: number; lng: number };
 
@@ -12,11 +13,6 @@ interface CreatePlaceDialogProps {
   onSave: (data: CreatePlaceData) => Promise<void>;
 }
 
-export function validatePlaceName(name: string): string | null {
-  if (!name.trim()) return "Введите название места.";
-  if (name.trim().length > 200) return "Название не может быть длиннее 200 символов.";
-  return null;
-}
 
 export function CreatePlaceDialog({
   coordinates,

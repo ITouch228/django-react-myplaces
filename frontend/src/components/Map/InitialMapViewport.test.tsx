@@ -16,7 +16,8 @@ vi.mock("react-leaflet", () => ({
   },
 }));
 
-import { getSavedPlaceCoordinates, InitialMapViewport } from "./InitialMapViewport";
+import { InitialMapViewport } from "./InitialMapViewport";
+import { getSavedPlaceCoordinates } from "./saved-place-coordinates";
 
 const place = (id: number, latitude: number, longitude: number) =>
   ({ id, latitude, longitude }) as Place;

@@ -119,3 +119,15 @@
   .places-toggle { padding: 11px 12px; font-size: 12px; }
   .map-locate { padding: 11px 9px; font-size: 11px; }
 }
+
+/* Dismissible geolocation error. */
+.map-location-error { padding-right: 42px; }
+.map-location-error .map-location-error__close {
+  position: absolute; top: 6px; right: 6px;
+  display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0;
+  border-radius: 8px; background: transparent;
+  color: #991b1b; font-size: 22px; line-height: 1;
+}
+.map-location-error .map-location-error__close:hover { background: #fee2e2; }
+.map-location-error .map-location-error__close:focus-visible { outline: 2px solid #991b1b; outline-offset: 2px; }

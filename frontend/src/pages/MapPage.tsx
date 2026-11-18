@@ -4,7 +4,8 @@ import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapController } from '../components/Map/MapController';
-import { InitialMapViewport, getSavedPlaceCoordinates } from '../components/Map/InitialMapViewport';
+import { InitialMapViewport } from '../components/Map/InitialMapViewport';
+import { getSavedPlaceCoordinates } from '../components/Map/saved-place-coordinates';
 import { SearchBox } from '../components/Map/SearchBox';
 import { PlacesPanel } from '../components/Map/PlacesPanel';
 import { CreatePlaceDialog } from '../components/Map/CreatePlaceDialog';
@@ -95,6 +96,11 @@ export const MapPage = () => {
   const autoLocateStarted = useRef(false);
   const [newPlaceLocation, setNewPlaceLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [locationNoticeDismissed, setLocationNoticeDismissed] = useState(false);
+
+  useEffect(() => {
+    setLocationNoticeDismissed(false);
+  }, [geolocationError]);
 
   const selectPlace = (place: Place) => {
     setSelectedId(place.id);
@@ -145,6 +151,7 @@ export const MapPage = () => {
   };
 
   const handleLocate = async () => {
+    setLocationNoticeDismissed(false);
     const coordinates = await requestPosition();
     if (!coordinates) return;
     setSelectedId(null);
@@ -182,10 +189,11 @@ export const MapPage = () => {
       >
         {isLocating ? "Определяем..." : "◎ Моё местоположение"}
       </button>
-      {geolocationError && (
+      {geolocationError && !locationNoticeDismissed && (
         <div className="map-location-error" role="alert">
-          <span>{geolocationError}</span>
-          <button type="button" onClick={handleLocate}>Повторить</button>
+          <button type="button" className="map-location-error__close" aria-label="Закрыть уведомление о геолокации" onClick={() => setLocationNoticeDismissed(true)}>×</button>
+          <span className="map-location-error__message">{geolocationError}</span>
+          <button type="button" className="map-location-error__retry" onClick={handleLocate}>Повторить</button>
         </div>
       )}
       {/* Поиск */}
