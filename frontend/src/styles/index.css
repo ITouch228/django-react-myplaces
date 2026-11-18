@@ -985,3 +985,26 @@ select.form-control {
   .place-details-page__header .place-name { order: -1; flex-basis: 100%; }
   .place-details-page__header .btn-danger { margin-left: auto !important; }
 }
+
+/* Shared micro-interactions: no staggering or delayed content on receipts. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card-hover,
+  .btn,
+  .places-panel__item,
+  .places-toggle,
+  .map-locate {
+    transition: background-color .18s ease, border-color .18s ease,
+      box-shadow .18s ease, transform .18s ease;
+  }
+  .card-hover:hover { transform: translateY(-2px); }
+  .places-panel__item:hover { transform: translateX(2px); }
+  .places-toggle:hover, .map-locate:hover { transform: translateY(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
