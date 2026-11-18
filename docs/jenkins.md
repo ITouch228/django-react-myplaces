@@ -41,7 +41,7 @@ docker compose -f ci/jenkins/compose.yaml --profile agent logs --tail=100 agent
 - Credentials: SSH Username with private key, username `git`; ключ хранить в Jenkins Credentials.
 - Script Path: `Jenkinsfile`; agent label `shared-ci`.
 - Включить Branch Indexing и проверить Scan Multibranch Pipeline Now.
-- Запустить ветку `docs/mkdocs-shared-jenkins` и проверить актуальный SHA.
+- Запустить ветку `ci/jenkins-only-shared-agent` и проверить актуальный SHA. Эта ветка основана на `feat/auth-live-validation-motion`, поэтому содержит также её изменения; после CI обе можно объединить последовательно либо слить новую ветку сразу в `main`.
 
 `pollSCM` проверяет уже найденные ветки; Branch Indexing обнаруживает новые. Проверяйте SSH host key, не отключайте его проверку.
 
@@ -59,7 +59,7 @@ MyInventory использует тот же label `shared-ci`. Для MyFiles �
 
 ## Переход с GitHub Actions
 
-GitHub Actions MyPlaces оставляем как резерв до подтверждения успешного Jenkins на нескольких коммитах. Только после проверки поведения Multibranch Pipeline можно отключить дублирующий Actions отдельным изменением.
+В ветке `ci/jenkins-only-shared-agent` workflow `.github/workflows/ci.yml` удалён. **Единственный CI после merge**: этот Jenkinsfile на агенте `shared-ci`. Перед merge обязательно проверить его на последнем SHA, так как GitHub Actions больше не будет дублировать проверки.
 
 ## Приёмка
 
@@ -68,3 +68,35 @@ GitHub Actions MyPlaces оставляем как резерв до подтве
 3. Ошибка Ruff/TypeScript приводит к FAILED, исправленный коммит вызывает новый запуск.
 4. MkDocs strict проходит в обоих проектах.
 5. После merge проверен `main`.
+
+## Переносы строк на Windows (CRLF/LF)
+
+В корне репозитория есть `.gitattributes`: `*.sh`, `Jenkinsfile` и конфигурации Docker принудительно выдаются Git с **LF**, независимо от `core.autocrlf` разработчика. `.bat`, `.cmd`, `.ps1` сохраняют CRLF.
+
+Дополнительно оба образа `backend/Dockerfile` (dev и prod) нормализуют `/entrypoint.sh` через `sed` **внутри Linux-образа** перед `chmod +x`, поэтому сборка не зависит от Windows-конверсии переносов строк.
+
+Если существующая рабочая копия на Windows была создана до появления `.gitattributes`, после сохранения всех локальных изменений выполнить в PowerShell из корня репозитория:
+
+```powershell
+git status
+git add --renormalize .
+git status
+```
+
+При необходимости закоммитить нормализацию в свою ветку. Для уже чистой рабочей копии достаточно повторно извлечь файлы с новыми атрибутами:
+
+```powershell
+git restore --source=HEAD --worktree -- backend/entrypoint.sh backend/Dockerfile
+docker compose build --no-cache backend
+docker compose up -d backend
+```
+
+**Важно:** `git restore` перезаписывает незакоммиченные изменения в указанных файлах. Применяйте только если их нет или они сохранены. `--no-cache` нужен только при исправлении старого образа, обычные последующие сборки можно делать без него.
+
+Проверка после сборки:
+
+```powershell
+docker compose exec backend sh -c "head -n 1 /entrypoint.sh && ls -l /entrypoint.sh"
+```
+
+Ожидаем `#!/bin/sh` и исполняемый файл. Ошибка вида `/bin/sh^M: bad interpreter` означает, что в исполняемый скрипт всё ещё попали CRLF.
