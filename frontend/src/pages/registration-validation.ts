@@ -15,7 +15,7 @@ export function validateRegistration(values: RegistrationValues): RegistrationEr
   if (!username) errors.username = "Введите имя пользователя.";
   else if (username.length < 3) errors.username = "Имя должно содержать минимум 3 символа.";
   else if (username.length > 150) errors.username = "Имя не должно превышать 150 символов.";
-  else if (!/^[\w@.+-]+$/u.test(username)) {
+  else if (!/^[\p{L}\p{N}_@.+-]+$/u.test(username)) {
     errors.username = "Используйте буквы, цифры и символы @ . + - _.";
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
