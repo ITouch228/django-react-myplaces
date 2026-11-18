@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { CreatePlaceDialog, validatePlaceName } from "./CreatePlaceDialog";
+import { CreatePlaceDialog } from "./CreatePlaceDialog";
+import { validatePlaceName } from "./place-name-validation";
 
 afterEach(cleanup);
 
