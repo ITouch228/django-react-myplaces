@@ -1,6 +1,6 @@
 .account-menu {
   position: fixed;
-  top: 18px;
+  bottom: 90px;
   right: 18px;
   z-index: 1500;
   width: max-content;
@@ -48,7 +48,7 @@
 .account-menu__popover {
   position: absolute;
   right: 0;
-  top: calc(100% + 9px);
+  bottom: calc(100% + 9px);
   width: min(275px, calc(100vw - 24px));
   padding: 7px;
   background: #fff;
@@ -85,19 +85,16 @@
 }
 .account-menu__logout:hover { background: #fff1f3; }
 @keyframes account-menu-appear {
-  from { opacity: 0; transform: translateY(-5px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @media (max-width: 769px) {
   .account-menu {
-    top: auto;
     right: 12px;
     bottom: calc(74px + env(safe-area-inset-bottom));
   }
   .account-menu__popover {
-    top: auto;
     bottom: calc(100% + 9px);
-    animation-name: account-menu-appear-mobile;
   }
   @keyframes account-menu-appear-mobile {
     from { opacity: 0; transform: translateY(5px); }
