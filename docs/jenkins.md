@@ -41,7 +41,7 @@ docker compose -f ci/jenkins/compose.yaml --profile agent logs --tail=100 agent
 - Credentials: SSH Username with private key, username `git`; ключ хранить в Jenkins Credentials.
 - Script Path: `Jenkinsfile`; agent label `shared-ci`.
 - Включить Branch Indexing и проверить Scan Multibranch Pipeline Now.
-- Запустить ветку `docs/mkdocs-shared-jenkins` и проверить актуальный SHA.
+- Запустить ветку `ci/jenkins-only-shared-agent` и проверить актуальный SHA. Эта ветка основана на `feat/auth-live-validation-motion`, поэтому содержит также её изменения; после CI обе можно объединить последовательно либо слить новую ветку сразу в `main`.
 
 `pollSCM` проверяет уже найденные ветки; Branch Indexing обнаруживает новые. Проверяйте SSH host key, не отключайте его проверку.
 
@@ -59,7 +59,7 @@ MyInventory использует тот же label `shared-ci`. Для MyFiles �
 
 ## Переход с GitHub Actions
 
-GitHub Actions MyPlaces оставляем как резерв до подтверждения успешного Jenkins на нескольких коммитах. Только после проверки поведения Multibranch Pipeline можно отключить дублирующий Actions отдельным изменением.
+В ветке `ci/jenkins-only-shared-agent` workflow `.github/workflows/ci.yml` удалён. **Единственный CI после merge**: этот Jenkinsfile на агенте `shared-ci`. Перед merge обязательно проверить его на последнем SHA, так как GitHub Actions больше не будет дублировать проверки.
 
 ## Приёмка
 
