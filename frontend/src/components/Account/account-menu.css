@@ -1,0 +1,108 @@
+.account-menu {
+  position: fixed;
+  bottom: 90px;
+  right: 18px;
+  z-index: 1500;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+}
+.account-menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(240px, calc(100vw - 24px));
+  min-height: 44px;
+  padding: 5px 11px 5px 6px;
+  border: 1px solid #e3eaf3;
+  border-radius: 14px;
+  background: #fff;
+  color: #243751;
+  box-shadow: 0 8px 28px #152b4d26;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.account-menu__trigger:hover { background: #f5f8ff; transform: translateY(-1px); }
+.account-menu__trigger:focus-visible, .account-menu__logout:focus-visible {
+  outline: 3px solid #89a4ff;
+  outline-offset: 3px;
+}
+.account-menu__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  height: 33px;
+  width: 33px;
+  border-radius: 10px;
+  background: #e7edff;
+  color: #405fd7;
+  font-size: 14px;
+}
+.account-menu__username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu__chevron { color: #8392ad; font-size: 19px; transition: transform .18s ease; }
+.account-menu__chevron--open { transform: rotate(180deg); }
+.account-menu__popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 9px);
+  width: min(275px, calc(100vw - 24px));
+  padding: 7px;
+  background: #fff;
+  border: 1px solid #e0e8f4;
+  border-radius: 16px;
+  box-shadow: 0 16px 45px #152b4d35;
+  animation: account-menu-appear .18s ease both;
+}
+.account-menu__identity {
+  display: grid;
+  gap: 3px;
+  padding: 12px 11px;
+  border-bottom: 1px solid #edf1f7;
+  overflow-wrap: anywhere;
+}
+.account-menu__identity strong { font-size: 14px; color: #223452; }
+.account-menu__identity span { font-size: 12px; color: #8391a6; }
+.account-menu__placeholder, .account-menu__logout {
+  width: 100%;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  border-radius: 9px;
+  font-size: 13px;
+}
+.account-menu__placeholder { color: #9da7b7; cursor: default; }
+.account-menu__placeholder small { margin-left: auto; font-size: 11px; }
+.account-menu__logout {
+  color: #b83e53;
+  background: transparent;
+  font-weight: 650;
+}
+.account-menu__logout:hover { background: #fff1f3; }
+@keyframes account-menu-appear {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 769px) {
+  .account-menu {
+    right: 12px;
+    bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+  .account-menu__popover {
+    bottom: calc(100% + 9px);
+  }
+  @keyframes account-menu-appear-mobile {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-menu__trigger, .account-menu__chevron { transition: none; }
+  .account-menu__trigger:hover { transform: none; }
+  .account-menu__popover { animation: none; }
+}
