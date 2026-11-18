@@ -194,7 +194,7 @@ export const MapPage = () => {
           <span className="map-location-error__message">{geolocationError}</span>
           <button type="button" className="map-location-error__retry" onClick={handleLocate}>Повторить</button>
         </div>
-      )
+      )}
       {/* Поиск */}
       <div className="search-container">
         <SearchBox onGeocode={handleMapSearch} />
