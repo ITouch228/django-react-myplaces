@@ -5,7 +5,8 @@ import App from "./App";
 describe("App", () => {
   it("renders login page when not authenticated", () => {
     render(<App />);
-    expect(screen.getByText(/Вход/i)).toBeInTheDocument();
-    expect(screen.getByText(/Регистрация/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "С возвращением" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Войти" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Зарегистрироваться" })).toBeInTheDocument();
   });
 });
