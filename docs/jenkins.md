@@ -68,3 +68,35 @@ MyInventory использует тот же label `shared-ci`. Для MyFiles �
 3. Ошибка Ruff/TypeScript приводит к FAILED, исправленный коммит вызывает новый запуск.
 4. MkDocs strict проходит в обоих проектах.
 5. После merge проверен `main`.
+
+## Переносы строк на Windows (CRLF/LF)
+
+В корне репозитория есть `.gitattributes`: `*.sh`, `Jenkinsfile` и конфигурации Docker принудительно выдаются Git с **LF**, независимо от `core.autocrlf` разработчика. `.bat`, `.cmd`, `.ps1` сохраняют CRLF.
+
+Дополнительно оба образа `backend/Dockerfile` (dev и prod) нормализуют `/entrypoint.sh` через `sed` **внутри Linux-образа** перед `chmod +x`, поэтому сборка не зависит от Windows-конверсии переносов строк.
+
+Если существующая рабочая копия на Windows была создана до появления `.gitattributes`, после сохранения всех локальных изменений выполнить в PowerShell из корня репозитория:
+
+```powershell
+git status
+git add --renormalize .
+git status
+```
+
+При необходимости закоммитить нормализацию в свою ветку. Для уже чистой рабочей копии достаточно повторно извлечь файлы с новыми атрибутами:
+
+```powershell
+git restore --source=HEAD --worktree -- backend/entrypoint.sh backend/Dockerfile
+docker compose build --no-cache backend
+docker compose up -d backend
+```
+
+**Важно:** `git restore` перезаписывает незакоммиченные изменения в указанных файлах. Применяйте только если их нет или они сохранены. `--no-cache` нужен только при исправлении старого образа, обычные последующие сборки можно делать без него.
+
+Проверка после сборки:
+
+```powershell
+docker compose exec backend sh -c "head -n 1 /entrypoint.sh && ls -l /entrypoint.sh"
+```
+
+Ожидаем `#!/bin/sh` и исполняемый файл. Ошибка вида `/bin/sh^M: bad interpreter` означает, что в исполняемый скрипт всё ещё попали CRLF.
