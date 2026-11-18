@@ -1,72 +1,78 @@
-import React, { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import "./auth-pages.css";
 
 export const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading || !username.trim() || !password) return;
+    setError("");
+    setLoading(true);
     try {
-      await login(username, password);
+      await login(username.trim(), password);
       navigate("/");
     } catch {
-      setError("Неверные логин или пароль");
+      setError("Неверное имя пользователя или пароль. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container-sm">
-      <div className="card" style={{ marginTop: 50 }}>
-        <h2 className="text-center">Вход</h2>
+    <main className="auth-layout">
+      <section className="auth-card">
+        <div className="auth-header">
+          <div className="auth-logo" aria-hidden="true">📍</div>
+          <p className="auth-eyebrow">Твоя личная карта впечатлений</p>
+          <h1>С возвращением</h1>
+          <p>Войди, чтобы продолжить собирать любимые места.</p>
+        </div>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Имя пользователя</label>
-            <input
-              className="form-control"
-              type="text"
-              placeholder="Имя пользователя"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Пароль</label>
-            <input
-              className="form-control"
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="text-center text-muted" style={{ color: "red" }}>
-              {error}
+          <div className="auth-field">
+            <label htmlFor="login-username">Имя пользователя</label>
+            <div className="auth-input-wrap">
+              <input
+                id="login-username"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => { setUsername(event.target.value); setError(""); }}
+                placeholder="Имя пользователя"
+                required
+                disabled={loading}
+              />
             </div>
-          )}
-
-          <div className="flex gap-10 mt-16">
-            <button className="btn btn-primary btn-block" type="submit">
-              Войти
-            </button>
-            <Link
-              to="/register"
-              className="btn btn-secondary btn-block text-center"
-            >
-              Регистрация
-            </Link>
           </div>
+          <div className="auth-field">
+            <label htmlFor="login-password">Пароль</label>
+            <div className="auth-input-wrap">
+              <input
+                id="login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => { setPassword(event.target.value); setError(""); }}
+                placeholder="Пароль"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+          {error && <div role="alert" className="auth-alert">{error}</div>}
+          <button className="auth-submit" type="submit" disabled={loading || !username.trim() || !password}>
+            {loading ? <><span className="auth-spinner" aria-hidden="true" /> Входим...</> : "Войти"}
+          </button>
+          <p className="auth-switch">Нет аккаунта? <Link to="/register">Зарегистрироваться</Link></p>
         </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
