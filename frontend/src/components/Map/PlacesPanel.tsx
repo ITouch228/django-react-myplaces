@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import type { Place } from "../../types";
+import type { Place, PlaceCategory, PlaceVisitStatus } from "../../types";
+import { PLACE_CATEGORIES, VISIT_STATUSES, categoryLabel, visitStatusLabel } from "./place-catalog-options";
 
-import { filterAndSortPlaces, type PlacesSort } from "./places-filter-sort";
+import { filterAndSortPlaces, type PlacesSort, type PlaceFilters } from "./places-filter-sort";
 
 interface PlacesPanelProps {
   places: Place[];
@@ -15,7 +16,8 @@ interface PlacesPanelProps {
 export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: PlacesPanelProps) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<PlacesSort>("name");
-  const results = useMemo(() => filterAndSortPlaces(places, query, sort), [places, query, sort]);
+  const [filters, setFilters] = useState<PlaceFilters>({ category: "all", status: "all", favoritesOnly: false });
+  const results = useMemo(() => filterAndSortPlaces(places, query, sort, filters), [places, query, sort, filters]);
 
   return (
     <aside
@@ -50,6 +52,37 @@ export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: Pla
             <button type="button" onClick={() => setQuery("")} aria-label="Сбросить поиск">✕</button>
           )}
         </div>
+        <div className="places-panel__catalog-filters">
+          <label htmlFor="places-category">Категория</label>
+          <select
+            id="places-category"
+            value={filters.category}
+            onChange={(event) => setFilters((previous) => ({ ...previous, category: event.target.value as PlaceCategory | "all" }))}
+            disabled={!open}
+          >
+            <option value="all">Все категории</option>
+            {PLACE_CATEGORIES.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
+          </select>
+          <label htmlFor="places-status">Статус</label>
+          <select
+            id="places-status"
+            value={filters.status}
+            onChange={(event) => setFilters((previous) => ({ ...previous, status: event.target.value as PlaceVisitStatus | "all" }))}
+            disabled={!open}
+          >
+            <option value="all">Все места</option>
+            {VISIT_STATUSES.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+          </select>
+          <label className="places-panel__favorite-filter">
+            <input
+              type="checkbox"
+              checked={filters.favoritesOnly}
+              onChange={(event) => setFilters((previous) => ({ ...previous, favoritesOnly: event.target.checked }))}
+              disabled={!open}
+            />
+            Только избранные
+          </label>
+        </div>
         <div className="places-panel__sort-row">
           <span className="places-panel__results-count">{results.length} из {places.length}</span>
           <label htmlFor="places-sort" className="sr-only">Порядок сортировки</label>
@@ -76,7 +109,7 @@ export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: Pla
           <div className="places-panel__empty">
             <span aria-hidden="true">⌕</span>
             <strong>Ничего не найдено</strong>
-            <p>Попробуй другое название или адрес.</p>
+            <p>Попробуй изменить поиск или фильтры.</p>
           </div>
         ) : (
           <ul className="places-panel__list">
@@ -94,6 +127,11 @@ export function PlacesPanel({ places, open, selectedId, onClose, onSelect }: Pla
                     <span className="places-panel__item-title">{place.name}</span>
                     {place.address && <span className="places-panel__address">{place.address}</span>}
                     <span className="places-panel__meta">
+                      <span>{categoryLabel(place.category)}</span>
+                      <span>·</span>
+                      <span>{visitStatusLabel(place.visit_status)}</span>
+                      {place.is_favorite && <span aria-label="В избранном">★</span>}
+                      <span>·</span>
                       <span>★ {place.avg_rating == null ? "Без оценок" : place.avg_rating.toFixed(1)}</span>
                       <span>·</span>
                       <span>{place.total_checks} чеков</span>
