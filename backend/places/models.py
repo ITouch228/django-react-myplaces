@@ -7,6 +7,24 @@ from django.utils import timezone
 
 
 class Place(models.Model):
+    class Category(models.TextChoices):
+        CAFE = "cafe", "Кафе"
+        RESTAURANT = "restaurant", "Ресторан"
+        BAR = "bar", "Бар"
+        BAKERY = "bakery", "Пекарня"
+        OTHER = "other", "Другое"
+
+    class VisitStatus(models.TextChoices):
+        WANT = "want", "Хочу посетить"
+        VISITED = "visited", "Посещено"
+
+    category: models.CharField = models.CharField(
+        max_length=20, choices=Category.choices, default=Category.OTHER
+    )
+    visit_status: models.CharField = models.CharField(
+        max_length=10, choices=VisitStatus.choices, default=VisitStatus.VISITED
+    )
+    is_favorite: models.BooleanField = models.BooleanField(default=False)
     name: models.CharField = models.CharField(max_length=200)
     address: models.TextField = models.TextField(blank=True)
     latitude: models.FloatField = models.FloatField()
