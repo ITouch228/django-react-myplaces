@@ -187,6 +187,46 @@ class PlaceAPITestCase(TestCase):
         self.place.refresh_from_db()
         self.assertEqual(self.place.name, "Updated Name")
 
+    def test_patch_place_fields_keeps_checks_and_identity(self):
+        check = Check.objects.create(place=self.place, user=self.user, visited_at="2026-11-19")
+        response = self.client.patch(
+            f"/api/places/{self.place.id}/",
+            {"name": "Edited Cafe", "address": "New address", "latitude": 55.8, "longitude": 37.7},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.place.refresh_from_db()
+        self.assertEqual(self.place.name, "Edited Cafe")
+        self.assertEqual(self.place.address, "New address")
+        self.assertEqual(self.place.latitude, 55.8)
+        self.assertEqual(self.place.longitude, 37.7)
+        self.assertTrue(Check.objects.filter(pk=check.pk, place=self.place).exists())
+        self.assertEqual(response.data["id"], self.place.id)
+
+    def test_patch_place_rejects_invalid_coordinates_without_changes(self):
+        response = self.client.patch(
+            f"/api/places/{self.place.id}/",
+            {"name": "Should not save", "latitude": 91},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.place.refresh_from_db()
+        self.assertEqual(self.place.name, "Existing Place")
+
+    def test_patch_cannot_change_another_users_place(self):
+        other_user = User.objects.create_user(username="otherowner", password="testpass")
+        other_place = Place.objects.create(
+            name="Private Place", latitude=55.0, longitude=37.0, user=other_user
+        )
+        response = self.client.patch(
+            f"/api/places/{other_place.id}/",
+            {"name": "Unauthorized"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        other_place.refresh_from_db()
+        self.assertEqual(other_place.name, "Private Place")
+
     def test_delete_place(self):
         response = self.client.delete(f"/api/places/{self.place.id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
