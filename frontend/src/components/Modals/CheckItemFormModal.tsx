@@ -36,9 +36,9 @@ export const CheckItemFormModal = ({
     e.preventDefault();
 
     setFormError("");
-    if (!itemName.trim() || !/^\\d+(?:\\.\\d{1,2})?$/.test(price) ||
+    if (!itemName.trim() || !/^\d+(?:\.\d{1,2})?$/.test(price) ||
         Number(price) > 99999999.99 ||
-        !/^[1-9]\\d*$/.test(quantity) || Number(quantity) > 10000) {
+        !/^[1-9]\d*$/.test(quantity) || Number(quantity) > 10000) {
       setFormError("Укажите название, корректную цену и количество от 1 до 10000.");
       return;
     }
