@@ -23,10 +23,16 @@ export interface Check {
   items: CheckItem[];
 }
 
+export type PlaceCategory = "cafe" | "restaurant" | "bar" | "bakery" | "other";
+export type PlaceVisitStatus = "want" | "visited";
+
 export interface Place {
   id: number;
   name: string;
   address?: string;
+  category: PlaceCategory;
+  visit_status: PlaceVisitStatus;
+  is_favorite: boolean;
   latitude: number;
   longitude: number;
   avg_rating: number | null;
@@ -44,7 +50,7 @@ export type CreateCheckData = Omit<
 > & {
   items: Omit<CheckItem, "id">[];
 };
-export type CreatePlaceData = Pick<Place, "name" | "latitude" | "longitude"> & { address?: string };
+export type CreatePlaceData = Pick<Place, "name" | "latitude" | "longitude"> & { address?: string; category?: PlaceCategory; visit_status?: PlaceVisitStatus; is_favorite?: boolean };
 export type UpdatePlaceData = CreatePlaceData;
 
 export type QueueItem = {
