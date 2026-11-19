@@ -27,6 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
 # CheckItem
 class CheckItemSerializer(serializers.ModelSerializer):
     line_total = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
+
     def validate_quantity(self, value):
         if value < 1 or value > 100000:
             raise serializers.ValidationError("Количество должно быть от 1 до 100000.")
