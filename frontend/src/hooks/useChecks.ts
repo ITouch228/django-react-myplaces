@@ -68,15 +68,17 @@ export const useAddCheckItem = (placeId: number) => {
       checkId,
       item_name,
       price,
+      quantity,
       rating,
     }: {
       checkId: number;
       item_name: string;
-      price: number;
+      price: string;
+      quantity: number;
       rating: number;
     }) =>
       api
-        .post(`/api/checks/${checkId}/add_item/`, { item_name, price, rating })
+        .post(`/api/checks/${checkId}/add_item/`, { item_name, price, quantity, rating })
         .then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({
