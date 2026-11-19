@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import type { CreatePlaceData } from "../../types";
+import type { CreatePlaceData, PlaceCategory, PlaceVisitStatus } from "../../types";
+import { PLACE_CATEGORIES, VISIT_STATUSES } from "./place-catalog-options";
 import "./create-place-dialog.css";
 import { validatePlaceName } from "./place-name-validation";
 
@@ -23,12 +24,18 @@ export function CreatePlaceDialog({
 }: CreatePlaceDialogProps) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [category, setCategory] = useState<PlaceCategory>("other");
+  const [visitStatus, setVisitStatus] = useState<PlaceVisitStatus>("visited");
+  const [isFavorite, setIsFavorite] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setName("");
     setAddress("");
+    setCategory("other");
+    setVisitStatus("visited");
+    setIsFavorite(false);
     setValidationError(null);
     if (coordinates) inputRef.current?.focus();
   }, [coordinates]);
@@ -56,6 +63,9 @@ export function CreatePlaceDialog({
     await onSave({
       name: name.trim(),
       address: address.trim(),
+      category,
+      visit_status: visitStatus,
+      is_favorite: isFavorite,
       latitude: coordinates.lat,
       longitude: coordinates.lng,
     });
@@ -104,6 +114,33 @@ export function CreatePlaceDialog({
               placeholder="Улица, дом или ориентир"
               disabled={pending}
             />
+            <label htmlFor="new-place-category">Категория</label>
+            <select
+              id="new-place-category"
+              value={category}
+              onChange={(event) => setCategory(event.target.value as PlaceCategory)}
+              disabled={pending}
+            >
+              {PLACE_CATEGORIES.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
+            </select>
+            <label htmlFor="new-place-status">Статус</label>
+            <select
+              id="new-place-status"
+              value={visitStatus}
+              onChange={(event) => setVisitStatus(event.target.value as PlaceVisitStatus)}
+              disabled={pending}
+            >
+              {VISIT_STATUSES.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
+            </select>
+            <label className="place-dialog__checkbox">
+              <input
+                type="checkbox"
+                checked={isFavorite}
+                onChange={(event) => setIsFavorite(event.target.checked)}
+                disabled={pending}
+              />
+              Добавить в избранное
+            </label>
             <div className="place-dialog__coordinates">
               <span>Выбранная точка</span>
               <span>{coordinates.lat.toFixed(5)}, {coordinates.lng.toFixed(5)}</span>
