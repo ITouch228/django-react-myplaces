@@ -35,6 +35,7 @@ export const CheckItemFormModal = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const error = validateReceiptItem({ item_name: itemName, price, quantity });
     if (error) { setFormError(error); return; }
@@ -56,7 +57,7 @@ export const CheckItemFormModal = ({
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={() => { if (!isLoading) onClose(); }}>
       <div
         className="modal-content"
         style={{ maxWidth: 480 }}
