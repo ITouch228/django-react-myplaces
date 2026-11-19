@@ -30,6 +30,23 @@ describe("personal places search and sorting", () => {
     expect(filterAndSortPlaces(places, "", "visits").map((item) => item.id)).toEqual([2, 1, 3]);
   });
 
+  it("filters categories, wishlist status and favorites together", () => {
+    const catalog = [
+      { ...places[0], category: "cafe", visit_status: "visited", is_favorite: true },
+      { ...places[1], category: "restaurant", visit_status: "want", is_favorite: true },
+      { ...places[2], category: "cafe", visit_status: "want", is_favorite: false },
+    ] as Place[];
+    expect(filterAndSortPlaces(catalog, "", "name", {
+      category: "cafe", status: "all", favoritesOnly: false,
+    }).map((item) => item.id)).toEqual([3, 1]);
+    expect(filterAndSortPlaces(catalog, "", "name", {
+      category: "all", status: "want", favoritesOnly: true,
+    }).map((item) => item.id)).toEqual([2]);
+    expect(filterAndSortPlaces(catalog, "Моск", "name", {
+      category: "cafe", status: "want", favoritesOnly: true,
+    })).toEqual([]);
+  });
+
   it("returns no results for an unmatched query", () => {
     expect(filterAndSortPlaces(places, "Несуществующее", "name")).toEqual([]);
   });
