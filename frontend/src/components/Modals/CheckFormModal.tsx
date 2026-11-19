@@ -53,6 +53,7 @@ export const CheckFormModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const nonEmptyItems = items.filter((item) =>
       item.item_name.trim() || item.price.trim(),
@@ -93,7 +94,7 @@ export const CheckFormModal = ({
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={() => { if (!isLoading) onClose(); }}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">
           {isEdit ? "Редактировать чек" : "Новый чек"}
@@ -167,6 +168,7 @@ export const CheckFormModal = ({
                 className="btn btn-danger btn-sm"
                 type="button"
                 onClick={() => removeItem(idx)}
+                disabled={isLoading}
               >
                 ×
               </button>
@@ -177,6 +179,7 @@ export const CheckFormModal = ({
             className="btn btn-secondary btn-sm mt-4"
             type="button"
             onClick={addItem}
+            disabled={isLoading}
           >
             + Добавить позицию
           </button>
