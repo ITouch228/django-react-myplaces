@@ -23,6 +23,6 @@ export function toReceiptItem(item: { item_name: string; price: string; quantity
 
 export function displayMoney(value: string | number) {
   const [integer, fraction = ""] = String(value).split(".");
-  const groups = integer.replace(/\\B(?=(\\d{3})+(?!\\d))/g, "\\u00A0");
+  const groups = integer.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
   return `${groups},${fraction.padEnd(2, "0").slice(0, 2)}`;
 }
