@@ -225,6 +225,59 @@ class PlaceAPITestCase(TestCase):
         other_place.refresh_from_db()
         self.assertEqual(other_place.name, "Private Place")
 
+    def test_catalog_defaults_preserve_existing_places(self):
+        response = self.client.get(f"/api/places/{self.place.id}/")
+        self.assertEqual(response.data["category"], "other")
+        self.assertEqual(response.data["visit_status"], "visited")
+        self.assertFalse(response.data["is_favorite"])
+
+    def test_create_place_with_catalog_fields(self):
+        response = self.client.post(
+            "/api/places/",
+            {**self.place_data, "category": "cafe", "visit_status": "want", "is_favorite": True},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["category"], "cafe")
+        self.assertEqual(response.data["visit_status"], "want")
+        self.assertTrue(response.data["is_favorite"])
+
+    def test_patch_catalog_fields_preserves_place_and_checks(self):
+        check = Check.objects.create(place=self.place, user=self.user)
+        response = self.client.patch(
+            f"/api/places/{self.place.id}/",
+            {"category": "restaurant", "visit_status": "want", "is_favorite": True},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.place.refresh_from_db()
+        self.assertEqual(self.place.category, "restaurant")
+        self.assertEqual(self.place.visit_status, "want")
+        self.assertTrue(self.place.is_favorite)
+        self.assertTrue(Check.objects.filter(pk=check.pk, place=self.place).exists())
+
+    def test_reject_invalid_category_and_status(self):
+        response = self.client.patch(
+            f"/api/places/{self.place.id}/",
+            {"category": "unknown", "visit_status": "invalid"}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("category", response.data)
+        self.assertIn("visit_status", response.data)
+
+    def test_cannot_change_other_user_catalog_fields(self):
+        other_user = User.objects.create_user(username="catalogother", password="testpass")
+        other_place = Place.objects.create(
+            name="Private", latitude=55, longitude=37, user=other_user,
+        )
+        response = self.client.patch(
+            f"/api/places/{other_place.id}/",
+            {"is_favorite": True, "category": "bar"}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        other_place.refresh_from_db()
+        self.assertFalse(other_place.is_favorite)
+
     def test_delete_place(self):
         response = self.client.delete(f"/api/places/{self.place.id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
