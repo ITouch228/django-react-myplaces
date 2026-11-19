@@ -100,4 +100,6 @@ class CheckItem(models.Model):
         return self.price * self.quantity
 
     def __str__(self):
+        if self.quantity == 1:
+            return f"{self.item_name} ({self.price:.2f} ₽)"
         return f"{self.item_name} ({self.price:.2f} ₽ × {self.quantity})"
