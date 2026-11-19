@@ -215,9 +215,7 @@ class PlaceAPITestCase(TestCase):
 
     def test_patch_cannot_change_another_users_place(self):
         other_user = User.objects.create_user(username="otherowner", password="testpass")
-        other_place = Place.objects.create(
-            name="Private Place", latitude=55.0, longitude=37.0, user=other_user
-        )
+        other_place = Place.objects.create(name="Private Place", latitude=55.0, longitude=37.0, user=other_user)
         response = self.client.patch(
             f"/api/places/{other_place.id}/",
             {"name": "Unauthorized"},
