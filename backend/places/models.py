@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from django.core.validators import MaxValueValidator, MinValueValidator
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import QuerySet
@@ -53,7 +55,7 @@ class Check(models.Model):
 
     @property
     def total(self) -> Decimal:
-        return sum((item.price for item in self.items.all()), Decimal("0.00"))
+        return sum((item.price * item.quantity for item in self.items.all()), Decimal("0.00"))
 
     @property
     def avg_rating(self) -> float | None:
@@ -74,6 +76,9 @@ class CheckItem(models.Model):
     check_ref: models.ForeignKey = models.ForeignKey(Check, on_delete=models.CASCADE, related_name="items")
     item_name: models.CharField = models.CharField(max_length=200)
     price: models.DecimalField = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity: models.PositiveIntegerField = models.PositiveIntegerField(
+        default=1, validators=[MinValueValidator(1), MaxValueValidator(10000)]
+    )
     rating: models.PositiveSmallIntegerField = models.PositiveSmallIntegerField(
         choices=[(i, i) for i in range(1, 6)], blank=True, null=True
     )
