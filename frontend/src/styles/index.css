@@ -1017,3 +1017,12 @@ select.form-control {
   .place-details-page__actions .btn { flex: 1 1 auto; }
   .place-details-page__actions .btn-danger { margin-left: 0 !important; }
 }
+
+/* Keep receipt item entry usable on desktop and narrow phones. */
+.item-row { flex-wrap: wrap; }
+.item-row .item-quantity { flex: 0 1 90px; min-width: 78px; }
+.item-row .item-name { min-width: 140px; }
+.item-row .item-price { min-width: 100px; }
+@media (max-width: 640px) {
+  .item-row .item-quantity { flex: 1 1 45%; }
+}
