@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { useCreateCheck, useUpdateCheck } from "../../hooks/useChecks";
 import type { Check } from "../../types";
+import { toReceiptItem, validateReceiptItem } from "../Checks/receipt-money";
 
 interface CheckFormModalProps {
   placeId: number;
@@ -25,8 +26,10 @@ export const CheckFormModal = ({
       item_name: item.item_name,
       price: String(item.price),
       rating: item.rating || 5,
-    })) || [{ item_name: "", price: "", rating: 5 }],
+      quantity: String(item.quantity ?? 1),
+    })) || [{ item_name: "", price: "", rating: 5, quantity: "1" }],
   );
+  const [formError, setFormError] = useState<string | null>(null);
 
   const createCheck = useCreateCheck();
   const updateCheck = useUpdateCheck();
@@ -34,7 +37,7 @@ export const CheckFormModal = ({
   const isLoading = createCheck.isPending || updateCheck.isPending;
 
   const addItem = () => {
-    setItems([...items, { item_name: "", price: "", rating: 5 }]);
+    setItems([...items, { item_name: "", price: "", rating: 5, quantity: "1" }]);
   };
 
   const removeItem = (index: number) => {
@@ -51,18 +54,20 @@ export const CheckFormModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const validItems = items
-      .filter((i) => i.item_name.trim() && i.price)
-      .map((i) => ({
-        item_name: i.item_name.trim(),
-        price: parseFloat(i.price),
-        rating: i.rating,
-      }));
-
-    if (!validItems.length) {
-      alert("Добавьте хотя бы одну позицию");
+    const nonEmptyItems = items.filter((item) =>
+      item.item_name.trim() || item.price.trim(),
+    );
+    if (!nonEmptyItems.length) {
+      setFormError("Добавьте хотя бы одну позицию.");
       return;
     }
+    const error = nonEmptyItems.map(validateReceiptItem).find(Boolean);
+    if (error) {
+      setFormError(error);
+      return;
+    }
+    setFormError(null);
+    const validItems = nonEmptyItems.map(toReceiptItem);
 
     const data = {
       visited_at: visitedAt,
@@ -81,7 +86,7 @@ export const CheckFormModal = ({
       }
       onClose();
     } catch {
-      alert("Ошибка сохранения чека");
+      setFormError("Не удалось сохранить чек. Проверьте соединение.");
     }
   };
 
@@ -128,10 +133,22 @@ export const CheckFormModal = ({
                 className="form-control item-price"
                 type="number"
                 step="0.01"
-                placeholder="Цена"
+                placeholder="Цена за 1 шт."
                 value={item.price}
                 onChange={(e) => updateItem(idx, "price", e.target.value)}
                 required
+              />
+              <input
+                className="form-control item-quantity"
+                type="number"
+                min="1"
+                max="100000"
+                step="1"
+                aria-label={`Количество позиции ${idx + 1}`}
+                value={item.quantity}
+                onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                required
+                disabled={isLoading}
               />
               <select
                 className="form-control item-rating"
@@ -164,6 +181,7 @@ export const CheckFormModal = ({
             + Добавить позицию
           </button>
 
+          {formError && <p role="alert" className="place-dialog__error">{formError}</p>}
           <div className="flex gap-10 mt-16">
             <button
               className="btn btn-success"
@@ -176,6 +194,7 @@ export const CheckFormModal = ({
               className="btn btn-secondary"
               type="button"
               onClick={onClose}
+              disabled={isLoading}
             >
               Отмена
             </button>
