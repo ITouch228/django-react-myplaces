@@ -380,6 +380,64 @@ class CheckAPITestCase(TestCase):
         CheckItem.objects.create(check_ref=check, item_name="Tea", price=Decimal("0.20"), rating=4)
         self.assertEqual(check.total, Decimal("0.30"))
 
+    def test_quantity_multiplies_unit_price_with_exact_decimal(self):
+        from decimal import Decimal
+
+        check = Check.objects.create(place=self.place, user=self.user)
+        CheckItem.objects.create(
+            check_ref=check, item_name="Tea", price=Decimal("0.10"), quantity=3, rating=5
+        )
+        CheckItem.objects.create(
+            check_ref=check, item_name="Cake", price=Decimal("0.20"), quantity=2, rating=4
+        )
+        self.assertEqual(check.total, Decimal("0.70"))
+        response = self.client.get(f"/api/checks/{check.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["total"], "0.70")
+        self.assertEqual(response.data["items"][0]["line_total"], "0.30")
+        self.assertEqual(response.data["items"][1]["line_total"], "0.40")
+
+    def test_create_check_with_quantities(self):
+        response = self.client.post(
+            "/api/checks/",
+            {
+                "place": self.place.id,
+                "visited_at": "2026-11-19",
+                "items": [
+                    {"item_name": "Tea", "price": "150.50", "quantity": 3, "rating": 5}
+                ],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["total"], "451.50")
+        item = CheckItem.objects.get(check_ref_id=response.data["id"])
+        self.assertEqual(item.quantity, 3)
+
+    def test_invalid_quantity_rejects_check_atomically(self):
+        for quantity in (0, -1, 1.5, 100001):
+            with self.subTest(quantity=quantity):
+                response = self.client.post(
+                    "/api/checks/",
+                    {
+                        "place": self.place.id,
+                        "visited_at": "2026-11-19",
+                        "items": [{"item_name": "Tea", "price": "0.10", "quantity": quantity}],
+                    },
+                    format="json",
+                )
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Check.objects.count(), 0)
+
+    def test_legacy_item_without_quantity_defaults_to_one(self):
+        response = self.client.post(
+            "/api/checks/", self.check_data, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        item = CheckItem.objects.get(check_ref_id=response.data["id"])
+        self.assertEqual(item.quantity, 1)
+        self.assertEqual(response.data["total"], "150.00")
+
     def test_create_check_unauthenticated(self):
         self.client.force_authenticate(user=None)
         response = self.client.post("/api/checks/", self.check_data, format="json")
@@ -448,6 +506,20 @@ class CheckItemAPITestCase(TestCase):
         data = {"price": 100}  # Без item_name
         response = self.client.post(f"/api/checks/{self.check.id}/add_item/", data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_patch_item_quantity_changes_total_without_changing_unit_price(self):
+        from decimal import Decimal
+
+        item = CheckItem.objects.create(
+            check_ref=self.check, item_name="Coffee", price=Decimal("12.50"), rating=5,
+        )
+        response = self.client.patch(
+            f"/api/check-items/{item.id}/", {"quantity": 4}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["price"], "12.50")
+        self.assertEqual(response.data["line_total"], "50.00")
+        self.assertEqual(self.check.total, Decimal("50.00"))
 
     def test_delete_item(self):
         item = CheckItem.objects.create(check_ref=self.check, item_name="Coffee", price=150, rating=5)
