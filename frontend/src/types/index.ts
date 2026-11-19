@@ -51,7 +51,7 @@ export type CreateCheckData = Omit<
   items: Omit<CheckItem, "id">[];
 };
 export type CreatePlaceData = Pick<Place, "name" | "latitude" | "longitude"> & { address?: string; category?: PlaceCategory; visit_status?: PlaceVisitStatus; is_favorite?: boolean };
-export type UpdatePlaceData = CreatePlaceData;
+export type UpdatePlaceData = Partial<CreatePlaceData>;
 
 export type QueueItem = {
   resolve: (value: string) => void;
