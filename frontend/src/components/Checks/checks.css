@@ -48,3 +48,11 @@
   .receipt-card__footer { align-items: stretch; }
   .receipt-card__footer-actions { justify-content: flex-end; }
 }
+
+/* CHECK-01: fit quantity and extended line price on narrow screens. */
+.receipt-card__item-price { line-height: 1.5; }
+@media (max-width: 640px) {
+  .receipt-card__item-price { grid-column: 1 / 3; grid-row: 2; white-space: normal; }
+  .receipt-card__item-rating { grid-row: 3; }
+  .receipt-card__item-actions { grid-row: 1 / 4; }
+}
