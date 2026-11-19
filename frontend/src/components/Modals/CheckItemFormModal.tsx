@@ -64,7 +64,7 @@ export const CheckItemFormModal = ({
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={() => { if (!isLoading) onClose(); }}>
       <div
         className="modal-content"
         style={{ maxWidth: 480 }}
@@ -74,7 +74,7 @@ export const CheckItemFormModal = ({
           {isEdit ? "Редактировать позицию" : "Добавить позицию"}
         </h3>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label className="form-label">Название</label>
             <input
