@@ -24,8 +24,9 @@ export const CheckFormModal = ({
     check?.items.map((item) => ({
       item_name: item.item_name,
       price: String(item.price),
+      quantity: String(item.quantity ?? 1),
       rating: item.rating || 5,
-    })) || [{ item_name: "", price: "", rating: 5 }],
+    })) || [{ item_name: "", price: "", quantity: "1", rating: 5 }],
   );
 
   const createCheck = useCreateCheck();
@@ -34,7 +35,7 @@ export const CheckFormModal = ({
   const isLoading = createCheck.isPending || updateCheck.isPending;
 
   const addItem = () => {
-    setItems([...items, { item_name: "", price: "", rating: 5 }]);
+    setItems([...items, { item_name: "", price: "", quantity: "1", rating: 5 }]);
   };
 
   const removeItem = (index: number) => {
@@ -48,21 +49,30 @@ export const CheckFormModal = ({
     setItems(newItems);
   };
 
+  const [formError, setFormError] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const validItems = items
-      .filter((i) => i.item_name.trim() && i.price)
-      .map((i) => ({
-        item_name: i.item_name.trim(),
-        price: parseFloat(i.price),
-        rating: i.rating,
-      }));
-
-    if (!validItems.length) {
-      alert("Добавьте хотя бы одну позицию");
+    setFormError("");
+    if (!items.length || items.some((item) =>
+      !item.item_name.trim() ||
+      !/^\\d+(?:\\.\\d{1,2})?$/.test(item.price) ||
+      !Number.isFinite(Number(item.price)) ||
+      Number(item.price) > 99999999.99 ||
+      !/^[1-9]\\d*$/.test(item.quantity) ||
+      !Number.isSafeInteger(Number(item.quantity)) ||
+      Number(item.quantity) > 10000
+    )) {
+      setFormError("Проверьте позиции: название, неотрицательную цену до 2 знаков после точки и количество от 1 до 10000.");
       return;
     }
+    const validItems = items.map((item) => ({
+      item_name: item.item_name.trim(),
+      price: Number(item.price),
+      quantity: Number(item.quantity),
+      rating: item.rating,
+    }));
 
     const data = {
       visited_at: visitedAt,
@@ -81,7 +91,7 @@ export const CheckFormModal = ({
       }
       onClose();
     } catch {
-      alert("Ошибка сохранения чека");
+      setFormError("Не удалось сохранить чек. Проверьте соединение и повторите попытку.");
     }
   };
 
@@ -128,9 +138,20 @@ export const CheckFormModal = ({
                 className="form-control item-price"
                 type="number"
                 step="0.01"
-                placeholder="Цена"
+                placeholder="Цена за единицу"
                 value={item.price}
                 onChange={(e) => updateItem(idx, "price", e.target.value)}
+                required
+              />
+              <input
+                className="form-control item-quantity"
+                type="number"
+                min="1"
+                max="10000"
+                step="1"
+                aria-label={`Количество позиции ${idx + 1}`}
+                value={item.quantity}
+                onChange={(e) => updateItem(idx, "quantity", e.target.value)}
                 required
               />
               <select
@@ -156,6 +177,8 @@ export const CheckFormModal = ({
             </div>
           ))}
 
+          {formError && <p role="alert" className="place-dialog__error">{formError}</p>}
+
           <button
             className="btn btn-secondary btn-sm mt-4"
             type="button"
@@ -176,6 +199,7 @@ export const CheckFormModal = ({
               className="btn btn-secondary"
               type="button"
               onClick={onClose}
+              disabled={isLoading}
             >
               Отмена
             </button>
