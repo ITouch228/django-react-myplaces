@@ -4,6 +4,7 @@ import type { Place, PlaceCategory, PlaceVisitStatus } from "../../types";
 import { PLACE_CATEGORIES, VISIT_STATUSES, categoryLabel, visitStatusLabel } from "./place-catalog-options";
 
 import { filterAndSortPlaces, type PlacesSort, type PlaceFilters } from "./places-filter-sort";
+import "./place-catalog-controls.css";
 
 interface PlacesPanelProps {
   places: Place[];
