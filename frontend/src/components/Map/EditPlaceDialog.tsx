@@ -8,6 +8,7 @@ import {
   type PlaceEditValues,
 } from "./place-edit-validation";
 import "./create-place-dialog.css";
+import { PlaceCoordinatePicker } from "./PlaceCoordinatePicker";
 import "./edit-place-dialog.css";
 
 interface EditPlaceDialogProps {
@@ -32,6 +33,7 @@ export function EditPlaceDialog({ place, pending, onClose, onSave }: EditPlaceDi
   );
   const [errors, setErrors] = useState<PlaceEditErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function EditPlaceDialog({ place, pending, onClose, onSave }: EditPlaceDi
     setValues(valuesFromPlace(place));
     setErrors({});
     setGeneralError(null);
+    setMapOpen(false);
     firstInputRef.current?.focus();
   }, [place]);
 
@@ -74,6 +77,15 @@ export function EditPlaceDialog({ place, pending, onClose, onSave }: EditPlaceDi
       setGeneralError(parsed.general);
     }
   };
+
+  const mapLatitude = Number(values.latitude);
+  const mapLongitude = Number(values.longitude);
+  const mapCoordinates: [number, number] | null =
+    values.latitude.trim() && values.longitude.trim() &&
+    Number.isFinite(mapLatitude) && Number.isFinite(mapLongitude) &&
+    Math.abs(mapLatitude) <= 90 && Math.abs(mapLongitude) <= 180
+      ? [mapLatitude, mapLongitude]
+      : null;
 
   const field = (name: PlaceEditField, label: string, placeholder: string, inputMode?: "decimal") => (
     <div className="edit-place__field">
@@ -115,6 +127,27 @@ export function EditPlaceDialog({ place, pending, onClose, onSave }: EditPlaceDi
               {field("latitude", "Широта", "55.7558", "decimal")}
               {field("longitude", "Долгота", "37.6173", "decimal")}
             </div>
+            <button
+              type="button"
+              className="edit-place__map-toggle"
+              onClick={() => setMapOpen((value) => !value)}
+              disabled={pending}
+              aria-expanded={mapOpen}
+            >
+              {mapOpen ? "Скрыть карту" : "Выбрать точку на карте"}
+            </button>
+            {mapOpen && mapCoordinates && (
+              <PlaceCoordinatePicker
+                coordinates={mapCoordinates}
+                onChange={(latitude, longitude) => {
+                  update("latitude", latitude.toFixed(6));
+                  update("longitude", longitude.toFixed(6));
+                }}
+              />
+            )}
+            {mapOpen && !mapCoordinates && (
+              <p className="place-dialog__error" role="alert">Сначала укажите корректные координаты, чтобы открыть карту.</p>
+            )}
             <p className="edit-place__hint">Изменение координат перенесёт маркер на карте. История чеков сохранится.</p>
             {generalError && <p role="alert" className="place-dialog__error">{generalError}</p>}
           </div>
