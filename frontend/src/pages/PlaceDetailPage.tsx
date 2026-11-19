@@ -94,16 +94,12 @@ export const PlaceDetailPage = () => {
         <h1 className="place-name">{place.name}</h1>
 
         <div className="place-details-page__actions">
-          <button className="btn btn-primary" onClick={() => setEditPlaceOpen(true)}>
+          <button type="button" className="btn btn-primary" onClick={() => setEditPlaceOpen(true)}>
             ✎ Редактировать
           </button>
-        <button
-          className="btn btn-danger"
-          onClick={handleDeletePlace}
-          style={{ marginLeft: 12 }}
-        >
-          🗑 Удалить место
-        </button>
+          <button type="button" className="btn btn-danger" onClick={handleDeletePlace}>
+            🗑 Удалить место
+          </button>
         </div>
       </div>
 
