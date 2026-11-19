@@ -259,7 +259,8 @@ class PlaceAPITestCase(TestCase):
     def test_reject_invalid_category_and_status(self):
         response = self.client.patch(
             f"/api/places/{self.place.id}/",
-            {"category": "unknown", "visit_status": "invalid"}, format="json",
+            {"category": "unknown", "visit_status": "invalid"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("category", response.data)
@@ -268,11 +269,15 @@ class PlaceAPITestCase(TestCase):
     def test_cannot_change_other_user_catalog_fields(self):
         other_user = User.objects.create_user(username="catalogother", password="testpass")
         other_place = Place.objects.create(
-            name="Private", latitude=55, longitude=37, user=other_user,
+            name="Private",
+            latitude=55,
+            longitude=37,
+            user=other_user,
         )
         response = self.client.patch(
             f"/api/places/{other_place.id}/",
-            {"is_favorite": True, "category": "bar"}, format="json",
+            {"is_favorite": True, "category": "bar"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         other_place.refresh_from_db()

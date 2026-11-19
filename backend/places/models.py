@@ -18,9 +18,7 @@ class Place(models.Model):
         WANT = "want", "Хочу посетить"
         VISITED = "visited", "Посещено"
 
-    category: models.CharField = models.CharField(
-        max_length=20, choices=Category.choices, default=Category.OTHER
-    )
+    category: models.CharField = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
     visit_status: models.CharField = models.CharField(
         max_length=10, choices=VisitStatus.choices, default=VisitStatus.VISITED
     )
