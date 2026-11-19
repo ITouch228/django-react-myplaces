@@ -8,3 +8,25 @@
 @media (max-width: 380px) {
   .edit-place__coordinates { grid-template-columns: 1fr; }
 }
+
+.edit-place__map-toggle {
+  justify-self: start;
+  padding: 9px 12px;
+  border-radius: 9px;
+  color: #3c5cca;
+  background: #ebf0ff;
+  font-size: 13px;
+  font-weight: 650;
+}
+.edit-place__map-toggle:hover:not(:disabled) { background: #e0e8ff; }
+.edit-place__map-picker { display: grid; gap: 9px; }
+.edit-place__map-picker p { font-size: 12px; color: #64748b; }
+.edit-place__map {
+  height: 220px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #dee7f4;
+  z-index: 0;
+}
+.edit-place__marker { background: transparent; border: none; font-size: 25px; }
+@media (max-width: 640px) { .edit-place__map { height: 185px; } }
