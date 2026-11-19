@@ -3,13 +3,15 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { CheckList } from "../components/Checks/CheckList";
 import { CheckFormModal } from "../components/Modals/CheckFormModal";
 import { CheckItemFormModal } from "../components/Modals/CheckItemFormModal";
-import { useDeletePlace, usePlace } from "../hooks/usePlaces";
-import type { Check, CheckItem } from "../types";
+import { EditPlaceDialog } from "../components/Map/EditPlaceDialog";
+import { useDeletePlace, usePlace, useUpdatePlace } from "../hooks/usePlaces";
+import type { Check, CheckItem, UpdatePlaceData } from "../types";
 
 export const PlaceDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const placeId = Number(id);
 
+  const [editPlaceOpen, setEditPlaceOpen] = useState(false);
   const [checkModalOpen, setCheckModalOpen] = useState(false);
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingCheck, setEditingCheck] = useState<Check | null>(null);
@@ -19,7 +21,13 @@ export const PlaceDetailPage = () => {
   const { data: place, isLoading, error } = usePlace(placeId);
 
   const deletePlace = useDeletePlace();
+  const updatePlace = useUpdatePlace();
   const navigate = useNavigate();
+
+  const handleUpdatePlace = async (data: UpdatePlaceData) => {
+    await updatePlace.mutateAsync({ id: placeId, data });
+    setEditPlaceOpen(false);
+  };
 
   const handleDeletePlace = async () => {
     if (!confirm(`Удалить место "${place?.name}" и все связанные чеки?`))
@@ -85,6 +93,10 @@ export const PlaceDetailPage = () => {
 
         <h1 className="place-name">{place.name}</h1>
 
+        <div className="place-details-page__actions">
+          <button className="btn btn-primary" onClick={() => setEditPlaceOpen(true)}>
+            ✎ Редактировать
+          </button>
         <button
           className="btn btn-danger"
           onClick={handleDeletePlace}
@@ -92,6 +104,7 @@ export const PlaceDetailPage = () => {
         >
           🗑 Удалить место
         </button>
+        </div>
       </div>
 
       {place.address && (
@@ -130,6 +143,13 @@ export const PlaceDetailPage = () => {
           onEditItem={handleEditItem}
         />
       </div>
+
+      <EditPlaceDialog
+        place={editPlaceOpen ? place : null}
+        pending={updatePlace.isPending}
+        onClose={() => setEditPlaceOpen(false)}
+        onSave={handleUpdatePlace}
+      />
 
       <CheckFormModal
         key={`check-${editingCheck?.id ?? "new"}`}
