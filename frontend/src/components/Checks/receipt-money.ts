@@ -22,6 +22,7 @@ export function toReceiptItem(item: { item_name: string; price: string; quantity
 }
 
 export function displayMoney(value: string | number) {
-  return new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    .format(Number(value));
+  const [integer, fraction = ""] = String(value).split(".");
+  const groups = integer.replace(/\\B(?=(\\d{3})+(?!\\d))/g, "\\u00A0");
+  return `${groups},${fraction.padEnd(2, "0").slice(0, 2)}`;
 }
