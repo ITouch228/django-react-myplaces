@@ -53,3 +53,14 @@
 
 !!! note "Контракт стоимости"
     В текущем API `avg_price` обозначает среднюю цену позиции, а не средний чек. Не переименовывайте значение без версии API или согласованного обновления клиента.
+
+## Каталог мест (UX-02)
+
+Поля `Place`: `category` (значения `cafe`, `restaurant`, `bar`, `bakery`, `other`), `visit_status` (`want` или `visited`), `is_favorite` (boolean). Они доступны в GET/list, POST и PATCH.
+
+```json
+{"category": "cafe", "visit_status": "want", "is_favorite": true}
+```
+
+Некорректные значения дают HTTP 400; изменение чужого места HTTP 404. Миграция `0003_place_catalog_fields` сохраняет существующие записи с умолчаниями `other`, `visited`, `false`.
+
