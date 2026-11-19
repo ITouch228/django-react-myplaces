@@ -48,3 +48,10 @@
   .receipt-card__footer { align-items: stretch; }
   .receipt-card__footer-actions { justify-content: flex-end; }
 }
+
+.receipt-card__item-price { white-space: normal; text-align: right; }
+@media (max-width: 640px) {
+  .receipt-card__item-price { grid-column: 1 / 3; grid-row: 2; text-align: left; }
+  .receipt-card__item-rating { grid-column: 1; grid-row: 3; }
+  .receipt-card__item-actions { grid-column: 3; grid-row: 1 / 4; }
+}
