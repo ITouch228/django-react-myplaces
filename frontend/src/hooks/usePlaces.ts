@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/api";
-import type { Place, CreatePlaceData } from "../types";
+import type { Place, CreatePlaceData, UpdatePlaceData } from "../types";
 
 // ===== QUERIES =====
 export const usePlace = (id: number) => {
@@ -27,6 +27,21 @@ export const useCreatePlace = () => {
       api.post<Place>("/api/places/", data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["places"] });
+    },
+  });
+};
+
+export const useUpdatePlace = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdatePlaceData }) =>
+      api.patch<Place>(`/api/places/${id}/`, data).then((res) => res.data),
+    onSuccess: (place, { id }) => {
+      queryClient.setQueryData<Place>(["place", id], (previous) =>
+        previous ? { ...previous, ...place } : place,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["place", id] });
+      void queryClient.invalidateQueries({ queryKey: ["places"] });
     },
   });
 };
