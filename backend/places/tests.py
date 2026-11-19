@@ -318,14 +318,20 @@ class CheckAPITestCase(TestCase):
         from decimal import Decimal
 
         check = Check.objects.create(place=self.place, user=self.user)
-        CheckItem.objects.create(check_ref=check, item_name="Coffee", price=Decimal("0.10"), quantity=3)
-        CheckItem.objects.create(check_ref=check, item_name="Tea", price=Decimal("0.20"), quantity=2)
+        CheckItem.objects.create(
+            check_ref=check, item_name="Coffee", price=Decimal("0.10"), quantity=3
+        )
+        CheckItem.objects.create(
+            check_ref=check, item_name="Tea", price=Decimal("0.20"), quantity=2
+        )
         self.assertEqual(check.total, Decimal("0.70"))
 
     def test_nested_check_creation_persists_quantity(self):
         data = {
             **self.check_data,
-            "items": [{"item_name": "Coffee", "price": "120.25", "quantity": 3, "rating": 5}],
+            "items": [
+                {"item_name": "Coffee", "price": "120.25", "quantity": 3, "rating": 5}
+            ],
         }
         response = self.client.post("/api/checks/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -343,7 +349,14 @@ class CheckAPITestCase(TestCase):
             with self.subTest(quantity=value):
                 data = {
                     **self.check_data,
-                    "items": [{"item_name": "Coffee", "price": "120.00", "quantity": value, "rating": 5}],
+                    "items": [
+                        {
+                            "item_name": "Coffee",
+                            "price": "120.00",
+                            "quantity": value,
+                            "rating": 5,
+                        }
+                    ],
                 }
                 response = self.client.post("/api/checks/", data, format="json")
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
