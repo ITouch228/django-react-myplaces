@@ -3,6 +3,7 @@ import { CheckItemFormModal } from "../Modals/CheckItemFormModal";
 import { useDeleteCheck, useDeleteCheckItem } from "../../hooks/useChecks";
 import type { Check, CheckItem } from "../../types";
 import "./checks.css";
+import { displayMoney } from "./receipt-money";
 
 interface CheckListProps {
   checks: Check[];
@@ -10,9 +11,6 @@ interface CheckListProps {
   onAddItem?: (checkId: number) => void;
   onEditItem?: (item: CheckItem, checkId: number) => void;
 }
-
-const money = (amount: number) =>
-  new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
 function CheckCard({
   check,
@@ -66,7 +64,7 @@ function CheckCard({
           <span className="receipt-card__subtitle">Чек №{check.id} · {check.items.length} позиций</span>
         </span>
         <span className="receipt-card__numbers">
-          <strong>{money(check.total)} ₽</strong>
+          <strong>{displayMoney(check.total)} ₽</strong>
           <span>★ {check.avg_rating == null ? "Нет оценки" : check.avg_rating}</span>
         </span>
         <span className="receipt-card__chevron" aria-hidden="true">{isOpen ? "⌃" : "⌄"}</span>
@@ -82,7 +80,9 @@ function CheckCard({
               {check.items.map((item) => (
                 <div className="receipt-card__item" key={item.id}>
                   <span className="receipt-card__item-name">{item.item_name}</span>
-                  <span className="receipt-card__item-price">{money(item.price)} ₽</span>
+                  <span className="receipt-card__item-price">
+                    {displayMoney(item.price)} ₽ × {item.quantity ?? 1} = {displayMoney(item.line_total ?? item.price)} ₽
+                  </span>
                   <span className="receipt-card__item-rating">
                     {item.rating == null ? "Без оценки" : `★ ${item.rating}`}
                   </span>
