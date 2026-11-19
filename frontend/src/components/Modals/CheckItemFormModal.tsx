@@ -23,6 +23,8 @@ export const CheckItemFormModal = ({
     checkItem?.price ? String(checkItem.price) : "",
   );
   const [rating, setRating] = useState(checkItem?.rating || 5);
+  const [quantity, setQuantity] = useState(String(checkItem?.quantity ?? 1));
+  const [formError, setFormError] = useState("");
 
   const addItem = useAddCheckItem(placeId);
   const updateItem = useUpdateCheckItem(placeId);
@@ -33,9 +35,17 @@ export const CheckItemFormModal = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    setFormError("");
+    if (!itemName.trim() || !/^\\d+(?:\\.\\d{1,2})?$/.test(price) ||
+        Number(price) > 99999999.99 ||
+        !/^[1-9]\\d*$/.test(quantity) || Number(quantity) > 10000) {
+      setFormError("Укажите название, корректную цену и количество от 1 до 10000.");
+      return;
+    }
     const data = {
-      item_name: itemName,
-      price: parseFloat(price),
+      item_name: itemName.trim(),
+      price: Number(price),
+      quantity: Number(quantity),
       rating,
     };
 
@@ -47,7 +57,7 @@ export const CheckItemFormModal = ({
       }
       onClose();
     } catch {
-      alert("Ошибка сохранения позиции");
+      setFormError("Ошибка сохранения позиции. Попробуйте ещё раз.");
     }
   };
 
@@ -78,7 +88,7 @@ export const CheckItemFormModal = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Цена</label>
+            <label className="form-label">Цена за единицу</label>
             <input
               className="form-control"
               type="number"
@@ -86,6 +96,21 @@ export const CheckItemFormModal = ({
               placeholder="Цена"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="check-item-quantity" className="form-label">Количество</label>
+            <input
+              id="check-item-quantity"
+              className="form-control"
+              type="number"
+              min="1"
+              max="10000"
+              step="1"
+              value={quantity}
+              onChange={(event) => setQuantity(event.target.value)}
               required
             />
           </div>
@@ -105,6 +130,7 @@ export const CheckItemFormModal = ({
             </select>
           </div>
 
+          {formError && <p role="alert" className="place-dialog__error">{formError}</p>}
           <div className="flex gap-10 mt-16">
             <button
               className="btn btn-success"
@@ -117,6 +143,7 @@ export const CheckItemFormModal = ({
               className="btn btn-secondary"
               type="button"
               onClick={onClose}
+              disabled={isLoading}
             >
               Отмена
             </button>
