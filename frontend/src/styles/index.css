@@ -1008,3 +1008,12 @@ select.form-control {
     scroll-behavior: auto !important;
   }
 }
+
+/* Place card editing controls */
+.place-details-page__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.place-details-page__actions .btn { min-height: 36px; }
+@media (max-width: 640px) {
+  .place-details-page__actions { width: 100%; }
+  .place-details-page__actions .btn { flex: 1 1 auto; }
+  .place-details-page__actions .btn-danger { margin-left: 0 !important; }
+}
