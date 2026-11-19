@@ -82,7 +82,9 @@ function CheckCard({
               {check.items.map((item) => (
                 <div className="receipt-card__item" key={item.id}>
                   <span className="receipt-card__item-name">{item.item_name}</span>
-                  <span className="receipt-card__item-price">{money(item.price)} ₽</span>
+                  <span className="receipt-card__item-price">
+                    {item.quantity ?? 1} × {money(item.price)} ₽ = {money(Math.round(Number(item.price) * (item.quantity ?? 1) * 100) / 100)} ₽
+                  </span>
                   <span className="receipt-card__item-rating">
                     {item.rating == null ? "Без оценки" : `★ ${item.rating}`}
                   </span>
