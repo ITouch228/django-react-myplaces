@@ -7,7 +7,9 @@ export interface User {
 export interface CheckItem {
   id: number;
   item_name: string;
-  price: number;
+  price: string;
+  quantity: number;
+  line_total: string;
   rating: number | null;
 }
 
@@ -18,7 +20,7 @@ export interface Check {
   visited_at: string;
   created_at: string;
   comment: string;
-  total: number;
+  total: string;
   avg_rating: number | null;
   items: CheckItem[];
 }
@@ -43,12 +45,12 @@ export interface Place {
   created_at: string;
 }
 
-export type CreateCheckItemData = Omit<CheckItem, "id">;
+export type CreateCheckItemData = Omit<CheckItem, "id" | "line_total">;
 export type CreateCheckData = Omit<
   Check,
   "id" | "created_at" | "user" | "total" | "avg_rating" | "items"
 > & {
-  items: Omit<CheckItem, "id">[];
+  items: CreateCheckItemData[];
 };
 export type CreatePlaceData = Pick<Place, "name" | "latitude" | "longitude"> & { address?: string; category?: PlaceCategory; visit_status?: PlaceVisitStatus; is_favorite?: boolean };
 export type UpdatePlaceData = Partial<CreatePlaceData>;
