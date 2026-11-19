@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { useAddCheckItem, useUpdateCheckItem } from "../../hooks/useChecks";
 import type { CheckItem } from "../../types";
+import { toReceiptItem, validateReceiptItem } from "../Checks/receipt-money";
 
 interface CheckItemFormModalProps {
   checkId: number;
@@ -23,6 +24,8 @@ export const CheckItemFormModal = ({
     checkItem?.price ? String(checkItem.price) : "",
   );
   const [rating, setRating] = useState(checkItem?.rating || 5);
+  const [quantity, setQuantity] = useState(String(checkItem?.quantity ?? 1));
+  const [formError, setFormError] = useState<string | null>(null);
 
   const addItem = useAddCheckItem(placeId);
   const updateItem = useUpdateCheckItem(placeId);
@@ -33,11 +36,10 @@ export const CheckItemFormModal = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = {
-      item_name: itemName,
-      price: parseFloat(price),
-      rating,
-    };
+    const error = validateReceiptItem({ item_name: itemName, price, quantity });
+    if (error) { setFormError(error); return; }
+    setFormError(null);
+    const data = toReceiptItem({ item_name: itemName, price, quantity, rating });
 
     try {
       if (isEdit && checkItem) {
@@ -47,7 +49,7 @@ export const CheckItemFormModal = ({
       }
       onClose();
     } catch {
-      alert("Ошибка сохранения позиции");
+      setFormError("Не удалось сохранить позицию. Проверьте соединение.");
     }
   };
 
@@ -91,6 +93,11 @@ export const CheckItemFormModal = ({
           </div>
 
           <div className="form-group">
+            <label className="form-label" htmlFor="receipt-item-quantity">Количество</label>
+            <input id="receipt-item-quantity" className="form-control" type="number" min="1" max="100000"
+              step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} required disabled={isLoading} />
+          </div>
+          <div className="form-group">
             <label className="form-label">Оценка</label>
             <select
               className="form-control"
@@ -105,6 +112,7 @@ export const CheckItemFormModal = ({
             </select>
           </div>
 
+          {formError && <p role="alert" className="place-dialog__error">{formError}</p>}
           <div className="flex gap-10 mt-16">
             <button
               className="btn btn-success"
@@ -117,6 +125,7 @@ export const CheckItemFormModal = ({
               className="btn btn-secondary"
               type="button"
               onClick={onClose}
+              disabled={isLoading}
             >
               Отмена
             </button>
