@@ -314,6 +314,41 @@ class CheckAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Check.objects.count(), 0)
 
+    def test_check_total_multiplies_quantity_with_decimal_precision(self):
+        from decimal import Decimal
+
+        check = Check.objects.create(place=self.place, user=self.user)
+        CheckItem.objects.create(check_ref=check, item_name="Coffee", price=Decimal("0.10"), quantity=3)
+        CheckItem.objects.create(check_ref=check, item_name="Tea", price=Decimal("0.20"), quantity=2)
+        self.assertEqual(check.total, Decimal("0.70"))
+
+    def test_nested_check_creation_persists_quantity(self):
+        data = {
+            **self.check_data,
+            "items": [{"item_name": "Coffee", "price": "120.25", "quantity": 3, "rating": 5}],
+        }
+        response = self.client.post("/api/checks/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        check = Check.objects.get(pk=response.data["id"])
+        self.assertEqual(check.items.get().quantity, 3)
+        self.assertEqual(str(check.total), "360.75")
+
+    def test_nested_items_without_quantity_default_to_one(self):
+        response = self.client.post("/api/checks/", self.check_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CheckItem.objects.get().quantity, 1)
+
+    def test_nested_invalid_quantity_is_rejected_atomically(self):
+        for value in (0, -1, 1.5, 10001):
+            with self.subTest(quantity=value):
+                data = {
+                    **self.check_data,
+                    "items": [{"item_name": "Coffee", "price": "120.00", "quantity": value, "rating": 5}],
+                }
+                response = self.client.post("/api/checks/", data, format="json")
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Check.objects.count(), 0)
+
     def test_check_total_preserves_decimal_precision(self):
         from decimal import Decimal
 
@@ -377,6 +412,31 @@ class CheckItemAPITestCase(TestCase):
         response = self.client.post(f"/api/checks/{self.check.id}/add_item/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CheckItem.objects.count(), 1)
+
+    def test_create_and_update_item_quantity(self):
+        response = self.client.post(
+            f"/api/checks/{self.check.id}/add_item/",
+            {"item_name": "Tea", "price": "40.50", "quantity": 2, "rating": 4},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        item = CheckItem.objects.get(pk=response.data["id"])
+        self.assertEqual(item.quantity, 2)
+        update = self.client.patch(
+            f"/api/check-items/{item.id}/", {"quantity": 4}, format="json"
+        )
+        self.assertEqual(update.status_code, status.HTTP_200_OK)
+        item.refresh_from_db()
+        self.assertEqual(item.quantity, 4)
+
+    def test_invalid_quantity_is_rejected_for_single_item(self):
+        response = self.client.post(
+            f"/api/checks/{self.check.id}/add_item/",
+            {"item_name": "Tea", "price": "40.50", "quantity": 0, "rating": 4},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(CheckItem.objects.count(), 0)
 
     def test_add_item_rejects_negative_price(self):
         response = self.client.post(
