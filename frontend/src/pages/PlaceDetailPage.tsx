@@ -4,6 +4,7 @@ import { CheckList } from "../components/Checks/CheckList";
 import { CheckFormModal } from "../components/Modals/CheckFormModal";
 import { CheckItemFormModal } from "../components/Modals/CheckItemFormModal";
 import { EditPlaceDialog } from "../components/Map/EditPlaceDialog";
+import { PlaceCatalogControls } from "../components/Map/PlaceCatalogControls";
 import { useDeletePlace, usePlace, useUpdatePlace } from "../hooks/usePlaces";
 import type { Check, CheckItem, UpdatePlaceData } from "../types";
 
@@ -108,6 +109,12 @@ export const PlaceDetailPage = () => {
           {place.address}
         </p>
       )}
+
+      <PlaceCatalogControls
+        place={place}
+        pending={updatePlace.isPending}
+        onSave={(data) => updatePlace.mutateAsync({ id: placeId, data })}
+      />
 
       <div className="stats-bar">
         <span className="stat">
