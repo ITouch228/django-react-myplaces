@@ -36,7 +36,7 @@ describe("create place dialog", () => {
     fireEvent.change(screen.getByLabelText("Адрес (необязательно)"), { target: { value: "  Арбат  " } });
     fireEvent.click(screen.getByRole("button", { name: "Сохранить место" }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({
-      name: "Кофейня", address: "Арбат", latitude: coordinates.lat, longitude: coordinates.lng,
+      name: "Кофейня", address: "Арбат", category: "other", visit_status: "visited", is_favorite: false, latitude: coordinates.lat, longitude: coordinates.lng,
     }));
   });
 
