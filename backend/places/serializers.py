@@ -26,6 +26,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 # CheckItem
 class CheckItemSerializer(serializers.ModelSerializer):
+    quantity = serializers.IntegerField(min_value=1, max_value=10000, default=1)
+
     def validate_price(self, value):
         if value < 0:
             raise serializers.ValidationError("Цена не может быть отрицательной.")
@@ -33,7 +35,7 @@ class CheckItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CheckItem
-        fields = ["id", "check_ref", "item_name", "price", "rating"]
+        fields = ["id", "check_ref", "item_name", "price", "quantity", "rating"]
         read_only_fields = ["check_ref"]
 
 
