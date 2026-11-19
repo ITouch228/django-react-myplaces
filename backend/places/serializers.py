@@ -26,6 +26,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 # CheckItem
 class CheckItemSerializer(serializers.ModelSerializer):
+    def validate_quantity(self, value):
+        if value < 1 or value > 100000:
+            raise serializers.ValidationError("Количество должно быть от 1 до 100000.")
+        return value
+
     def validate_price(self, value):
         if value < 0:
             raise serializers.ValidationError("Цена не может быть отрицательной.")
@@ -33,8 +38,8 @@ class CheckItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CheckItem
-        fields = ["id", "check_ref", "item_name", "price", "rating"]
-        read_only_fields = ["check_ref"]
+        fields = ["id", "check_ref", "item_name", "price", "quantity", "line_total", "rating"]
+        read_only_fields = ["check_ref", "line_total"]
 
 
 # Check
