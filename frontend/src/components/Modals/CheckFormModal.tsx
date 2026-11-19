@@ -57,10 +57,10 @@ export const CheckFormModal = ({
     setFormError("");
     if (!items.length || items.some((item) =>
       !item.item_name.trim() ||
-      !/^\\d+(?:\\.\\d{1,2})?$/.test(item.price) ||
+      !/^\d+(?:\.\d{1,2})?$/.test(item.price) ||
       !Number.isFinite(Number(item.price)) ||
       Number(item.price) > 99999999.99 ||
-      !/^[1-9]\\d*$/.test(item.quantity) ||
+      !/^[1-9]\d*$/.test(item.quantity) ||
       !Number.isSafeInteger(Number(item.quantity)) ||
       Number(item.quantity) > 10000
     )) {
