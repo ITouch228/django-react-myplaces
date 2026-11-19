@@ -51,3 +51,16 @@
   .place-dialog__body { padding: 17px 18px; }
   .place-dialog__actions { padding: 13px 18px max(20px, env(safe-area-inset-bottom)); }
 }
+
+.place-dialog__body select {
+  width: 100%; padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid #ced9e9; background: #fff;
+  border-radius: 10px; color: #1c314f; font-size: 14px;
+}
+.place-dialog__body .place-dialog__checkbox {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 3px 0 10px; cursor: pointer;
+}
+.place-dialog__body .place-dialog__checkbox input {
+  width: 16px; height: 16px; margin: 0; accent-color: #4567e8;
+}
