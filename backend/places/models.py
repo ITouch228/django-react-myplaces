@@ -69,7 +69,7 @@ class Check(models.Model):
 
     @property
     def total(self) -> Decimal:
-        return sum((item.price for item in self.items.all()), Decimal("0.00"))
+        return sum((item.line_total for item in self.items.all()), Decimal("0.00"))
 
     @property
     def avg_rating(self) -> float | None:
@@ -90,9 +90,14 @@ class CheckItem(models.Model):
     check_ref: models.ForeignKey = models.ForeignKey(Check, on_delete=models.CASCADE, related_name="items")
     item_name: models.CharField = models.CharField(max_length=200)
     price: models.DecimalField = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity: models.PositiveIntegerField = models.PositiveIntegerField(default=1)
     rating: models.PositiveSmallIntegerField = models.PositiveSmallIntegerField(
         choices=[(i, i) for i in range(1, 6)], blank=True, null=True
     )
 
+    @property
+    def line_total(self) -> Decimal:
+        return self.price * self.quantity
+
     def __str__(self):
-        return f"{self.item_name} ({self.price:.2f} ₽)"
+        return f"{self.item_name} ({self.price:.2f} ₽ × {self.quantity})"
