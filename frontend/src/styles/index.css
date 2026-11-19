@@ -1017,3 +1017,15 @@ select.form-control {
   .place-details-page__actions .btn { flex: 1 1 auto; }
   .place-details-page__actions .btn-danger { margin-left: 0 !important; }
 }
+
+/* Receipt editor: five controls with a dedicated quantity field. */
+.item-row .item-quantity { flex: 0 1 92px; min-width: 70px; }
+.item-row .item-price { min-width: 110px; }
+.item-row .item-name { min-width: 140px; }
+@media (max-width: 640px) {
+  .item-row { gap: 7px; }
+  .item-row .item-quantity,
+  .item-row .item-price,
+  .item-row .item-rating { flex: 1 1 90px; min-width: 0; }
+  .item-row .item-name { flex: 1 1 100%; }
+}
