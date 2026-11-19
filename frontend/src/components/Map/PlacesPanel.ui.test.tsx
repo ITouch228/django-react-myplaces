@@ -95,6 +95,6 @@ describe("PlacesPanel interactions", () => {
   it("disables navigation and filters when closed", () => {
     renderPanel({ open: false });
     expect((screen.getByRole("searchbox", { hidden: true }) as HTMLInputElement).disabled).toBe(true);
-    expect((screen.getByRole("combobox", { hidden: true }) as HTMLSelectElement).disabled).toBe(true);
+    expect((screen.getByRole("combobox", { hidden: true, name: "Порядок сортировки" }) as HTMLSelectElement).disabled).toBe(true);
   });
 });
