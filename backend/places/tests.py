@@ -384,12 +384,8 @@ class CheckAPITestCase(TestCase):
         from decimal import Decimal
 
         check = Check.objects.create(place=self.place, user=self.user)
-        CheckItem.objects.create(
-            check_ref=check, item_name="Tea", price=Decimal("0.10"), quantity=3, rating=5
-        )
-        CheckItem.objects.create(
-            check_ref=check, item_name="Cake", price=Decimal("0.20"), quantity=2, rating=4
-        )
+        CheckItem.objects.create(check_ref=check, item_name="Tea", price=Decimal("0.10"), quantity=3, rating=5)
+        CheckItem.objects.create(check_ref=check, item_name="Cake", price=Decimal("0.20"), quantity=2, rating=4)
         self.assertEqual(check.total, Decimal("0.70"))
         response = self.client.get(f"/api/checks/{check.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -403,9 +399,7 @@ class CheckAPITestCase(TestCase):
             {
                 "place": self.place.id,
                 "visited_at": "2026-11-19",
-                "items": [
-                    {"item_name": "Tea", "price": "150.50", "quantity": 3, "rating": 5}
-                ],
+                "items": [{"item_name": "Tea", "price": "150.50", "quantity": 3, "rating": 5}],
             },
             format="json",
         )
@@ -430,9 +424,7 @@ class CheckAPITestCase(TestCase):
         self.assertEqual(Check.objects.count(), 0)
 
     def test_legacy_item_without_quantity_defaults_to_one(self):
-        response = self.client.post(
-            "/api/checks/", self.check_data, format="json"
-        )
+        response = self.client.post("/api/checks/", self.check_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         item = CheckItem.objects.get(check_ref_id=response.data["id"])
         self.assertEqual(item.quantity, 1)
@@ -511,10 +503,15 @@ class CheckItemAPITestCase(TestCase):
         from decimal import Decimal
 
         item = CheckItem.objects.create(
-            check_ref=self.check, item_name="Coffee", price=Decimal("12.50"), rating=5,
+            check_ref=self.check,
+            item_name="Coffee",
+            price=Decimal("12.50"),
+            rating=5,
         )
         response = self.client.patch(
-            f"/api/check-items/{item.id}/", {"quantity": 4}, format="json",
+            f"/api/check-items/{item.id}/",
+            {"quantity": 4},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["price"], "12.50")
