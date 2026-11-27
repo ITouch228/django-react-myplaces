@@ -1,11 +1,11 @@
 # Один Jenkins и один общий агент
 
-MyPlaces использует существующий Jenkins MyInventory на **http://localhost:8092**, без второго контроллера или агента. Общий агент собирается **только** из репозитория [MyInventory](https://github.com/ITouch228/fastapi-react-my_inventory), ветка `ci/shared-agent-python312-node22` до её слияния с main.
+MyPlaces использует существующий Jenkins MyInventory на **http://localhost:9061**, без второго контроллера или агента. Общий агент собирается **только** из репозитория [MyInventory](https://github.com/ITouch228/fastapi-react-my_inventory), ветка `ci/shared-agent-python312-node22` до её слияния с main.
 
 ## Архитектура
 
 ```text
-Jenkins controller :8092 (существующий)
+Jenkins controller :9061 (существующий)
   └── Jenkins agent (один контейнер, один executor)
       ├── MyInventory job
       ├── MyPlaces job

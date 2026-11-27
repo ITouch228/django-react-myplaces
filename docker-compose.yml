@@ -19,7 +19,7 @@ services:
       target: dev
     container_name: my_places-frontend
     ports:
-      - "0.0.0.0:8073:8073"
+      - "0.0.0.0:8071:8071"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -37,7 +37,7 @@ services:
     container_name: my_places-docs
     restart: unless-stopped
     ports:
-      - "0.0.0.0:8071:80"
+      - "0.0.0.0:8073:80"
 
 networks:
   network:

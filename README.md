@@ -31,7 +31,7 @@ docker compose ps
 | Интерфейс | http://localhost:8071 |
 | Django API | http://localhost:8072/api/ |
 | Django Admin | http://localhost:8072/admin/ |
-| Документация | http://localhost:8093 |
+| Документация | http://localhost:8073 |
 
 Используются отдельные порты, совместимые с запуском MyFiles/MyInventory на том же ПК. Файл `frontend/.env`, если был создан ранее, необходимо привести к `VITE_API_URL=http://localhost:8072`. CORS для backend должен разрешать frontend на 8071.
 
