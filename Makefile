@@ -1,6 +1,7 @@
 .PHONY: help build build-d up down down-v restart logs logs-backend logs-frontend
 .PHONY: migrate makemigrations createsuperuser shell bash-backend bash-frontend
 .PHONY: lint lint-backend lint-frontend lint-fix format check test coverage
+.PHONY: mobile-install mobile mobile-check apk
 
 # ========================================
 # DOCKER COMMANDS
@@ -119,6 +120,28 @@ coverage-backend:
 	docker-compose exec backend coverage report
 	docker-compose exec backend coverage html
 
+
+# Expo development and local Android beta
+
+mobile-install:
+	npm --prefix mobile ci --no-audit --no-fund
+
+mobile:
+	npm --prefix mobile start
+
+mobile-check:
+	npm --prefix mobile run doctor
+	npm --prefix mobile run typecheck
+	npm --prefix mobile test
+
+apk:
+	cd mobile && npx --no-install expo prebuild --platform android --no-install
+ifeq ($(OS),Windows_NT)
+	cd mobile/android && gradlew.bat :app:assembleRelease
+else
+	cd mobile/android && ./gradlew :app:assembleRelease
+endif
+
 # ========================================
 # HEALTH CHECK
 # ========================================
@@ -170,6 +193,12 @@ help:
 	@echo "  test             Run all tests"
 	@echo "  test-backend     Run Django tests"
 	@echo "  test-frontend    Run frontend tests"
+	@echo ""
+	@echo "MOBILE:"
+	@echo "  mobile-install   Install mobile dependencies"
+	@echo "  mobile           Start Expo Metro on port 7051"
+	@echo "  mobile-check     Check Expo dependencies, TypeScript and SQLite tests"
+	@echo "  apk              Build a local Android beta APK"
 	@echo ""
 	@echo "COVERAGE:"
 	@echo "  coverage         Run test coverage"

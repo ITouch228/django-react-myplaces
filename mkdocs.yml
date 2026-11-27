@@ -57,6 +57,7 @@ nav:
   - Пользователю:
       - Запуск приложения: getting-started.md
       - Работа с местами и чеками: user-guide.md
+      - Мобильный клиент: mobile.md
   - Архитектура:
       - Устройство системы: architecture.md
       - Offline-first мобильный клиент (предложение): mobile-first-proposal.md

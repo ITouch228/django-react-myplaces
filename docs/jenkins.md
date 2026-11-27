@@ -51,6 +51,7 @@ docker compose -f ci/jenkins/compose.yaml --profile agent logs --tail=100 agent
 | --- | --- |
 | Backend | Ruff, mypy, Django checks, миграции, тесты, coverage |
 | Frontend | npm ci, ESLint, Vite/TypeScript build, Vitest |
+| Mobile | npm ci, совместимость Expo SDK, TypeScript, тесты форматов и SQLite |
 | Документация | MkDocs strict и проверка собранного HTML |
 
 MyInventory использует тот же label `shared-ci`. Для MyFiles отдельный Jenkinsfile ещё предстоит добавить, не создавая другого агента.

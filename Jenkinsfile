@@ -98,6 +98,20 @@ pipeline {
             }
         }
 
+        stage('Mobile quality') {
+            steps {
+                dir('mobile') {
+                    sh '''
+                        set -eu
+                        npm ci --no-audit --no-fund
+                        CI=1 npm run doctor
+                        npm run typecheck
+                        npm test
+                    '''
+                }
+            }
+        }
+
         stage('MkDocs strict') {
             steps {
                 sh '''
